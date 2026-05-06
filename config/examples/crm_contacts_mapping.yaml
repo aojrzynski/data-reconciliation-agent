@@ -1,9 +1,34 @@
 entity: crm_contacts
-key: contact_id
+source_key: salesforce_contact_id
+target_key: legacy_salesforce_id
 field_mappings:
-  - source: contact_id
-    target: crm_contact_id
+  - source: first_name
+    target: firstname
     comparator: string
-  - source: created_at
-    target: created_date
+  - source: last_name
+    target: lastname
+    comparator: string
+  - source: email
+    target: emailaddress1
+    comparator: string
+    normalize:
+      trim: true
+      case_sensitive: false
+  - source: phone
+    target: telephone1
+    comparator: string
+  - source: contact_status
+    target: statecode
+    comparator: string
+    normalize:
+      trim: true
+      case_sensitive: false
+  - source: created_date
+    target: createdon
     comparator: date
+  - source: last_modified_date
+    target: modifiedon
+    comparator: date
+  - source: owner_id
+    target: ownerid
+    comparator: string

@@ -1,0 +1,15 @@
+customer_id,given_name,family_name,email_address,phone_number,account_status,created_date,balance
+CUST-1001,Ava,Johnson,ava.johnson@example.com,+1-415-555-0101,active,2024-01-15,1250.75
+CUST-1002,Liam,Smith,liam.smith@example.com,+1-415-555-0102,active,2024-01-18,99.99
+CUST-1003,Noah,Brown,noah.brown@example.com,+1-415-555-0103,inactive,2023-12-04,0.00
+CUST-1004,Emma,Davis,emma.davis@example.com,+1-415-555-0104,active,2024-02-01,560.20
+CUST-1005,Olivia,Miller,olivia.miller@example.com,+1-415-555-0105,pending,2024-02-11,45.00
+CUST-1006,Elijah,Wilson,elijah.wilson@example.com,+1-415-555-0106,active,2024-02-19,7750.33
+CUST-1007,Sophia,Moore,sophia.moore@example.com,+1-415-555-0107,suspended,2024-03-02,15.49
+CUST-1008,James,Taylor,james.taylor@example.com,+1-415-555-0108,active,2024-03-10,230.10
+CUST-1009,Isabella,Anderson,isabella.anderson@example.com,+1-415-555-0109,active,2024-03-17,920.00
+CUST-1010,Lucas,Thomas,lucas.thomas@example.com,+1-415-555-0110,inactive,2024-03-22,310.55
+CUST-1011,Mia,Jackson,mia.jackson@example.com,+1-415-555-0111,active,2024-04-01,180.80
+CUST-1012,Benjamin,White,benjamin.white@example.com,+1-415-555-0112,pending,2024-04-09,0.50
+CUST-2013,Harper,Young,harper.young@example.com,+1-415-555-0213,active,2024-04-12,67.00
+CUST-2014,Henry,King,henry.king@example.com,+1-415-555-0214,inactive,2024-04-13,5.40

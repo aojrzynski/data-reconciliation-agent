@@ -31,6 +31,7 @@
 - string comparator
 - numeric comparator with tolerance
 - date comparator
+- datetime comparator
 - null-handling comparator behavior
 
 ## Milestone 5: Agent mode

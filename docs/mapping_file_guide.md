@@ -2,14 +2,23 @@
 
 Mapping YAML files define source-to-target field relationships and comparator intent.
 
-Typical fields:
+Current example mapping structure uses:
 
 - entity
-- key
+- source_key
+- target_key
 - field_mappings[]
   - source
   - target
   - comparator
+  - optional normalize
   - optional tolerance
 
-Phase 0 includes examples only. Validation and execution behavior will be added in later milestones.
+Planned deterministic comparators include:
+
+- string
+- number
+- date
+- datetime
+
+Examples live under `config/examples/`.
