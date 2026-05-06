@@ -42,7 +42,7 @@ Agent mode will not "decide by vibe" whether records match.
 
 ## Current status
 
-**Milestone 1 in progress / fixture foundation**: project structure, architecture docs, CLI skeleton, realistic source/target fixture datasets, mapping examples, and sample scenario documentation are in place. Real reconciliation logic is intentionally not implemented yet.
+**Milestone 2 implemented / deterministic reconciliation v0**: the CLI now performs record-level deterministic source-to-target reconciliation using an explicit same-name key column. It writes a JSON trace, markdown report, and exception CSV outputs for missing, unexpected, null-key, and duplicate-key findings.
 
 ## Planned v1 features
 
@@ -56,28 +56,19 @@ Agent mode will not "decide by vibe" whether records match.
 - exception CSV outputs
 - optional LLM-polished summary (non-authoritative)
 
-## Example future CLI commands
+## Example working CLI command (Milestone 2)
 
-These represent intended usage once deterministic engine milestones are complete:
+This command works now for record-level reconciliation with same-name keys:
 
 ```bash
 python -m data_reconciliation_agent.cli \
   --source sample_data/customers/source_customers.csv \
   --target sample_data/customers/target_customers_clean.csv \
   --key customer_id \
-  --mapping config/examples/customers_mapping.yaml \
   --mode deterministic \
-  --output-dir outputs/customers_run
+  --output-dir outputs/customers_clean_run
 ```
 
-```bash
-python -m data_reconciliation_agent.cli \
-  --source sample_data/crm_migration/source_contacts_salesforce.csv \
-  --target sample_data/crm_migration/target_contacts_dynamics_clean.csv \
-  --mapping config/examples/crm_contacts_mapping.yaml \
-  --mode agent \
-  --llm-summary
-```
 
 ## Non-goals (v1)
 
@@ -110,3 +101,11 @@ These datasets are fixtures for implementation and testing. They do not imply th
 ## Learning angle
 
 This repository is designed to be understandable by technical recruiters, developers, analysts, and engineers learning bounded agent patterns. The writing is intentionally direct so readers can quickly see what is deterministic, what is orchestration, and where future milestones fit.
+
+
+## Milestone 2 scope limits
+
+- Mapping config execution is not implemented yet (planned for Milestone 3).
+- Field-level mapped value comparison is not implemented yet.
+- Agent mode is not implemented yet.
+- LLM summary polish is not implemented yet.
