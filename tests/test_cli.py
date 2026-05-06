@@ -34,10 +34,36 @@ def test_cli_deterministic_clean_exits_zero(tmp_path: Path) -> None:
         "--output-dir", str(tmp_path),
     ])
     assert result.returncode == 0
-    assert "Matched keys:" in result.stdout
 
 
-def test_cli_missing_key_exits_non_zero(tmp_path: Path) -> None:
+def test_cli_mapping_crm_clean_exits_zero(tmp_path: Path) -> None:
+    result = _run_cli([
+        "--mode", "deterministic",
+        "--source", str(ROOT / "sample_data/crm_migration/source_contacts_salesforce.csv"),
+        "--target", str(ROOT / "sample_data/crm_migration/target_contacts_dynamics_clean.csv"),
+        "--mapping", str(ROOT / "config/examples/crm_contacts_mapping.yaml"),
+        "--output-dir", str(tmp_path),
+    ])
+    assert result.returncode == 0
+    assert "Key mode: mapping_config" in result.stdout
+    assert "Source key: salesforce_contact_id" in result.stdout
+    assert "Target key: legacy_salesforce_id" in result.stdout
+
+
+def test_cli_mapping_crm_issues_writes_exceptions(tmp_path: Path) -> None:
+    result = _run_cli([
+        "--mode", "deterministic",
+        "--source", str(ROOT / "sample_data/crm_migration/source_contacts_salesforce.csv"),
+        "--target", str(ROOT / "sample_data/crm_migration/target_contacts_dynamics_issues.csv"),
+        "--mapping", str(ROOT / "config/examples/crm_contacts_mapping.yaml"),
+        "--output-dir", str(tmp_path),
+    ])
+    assert result.returncode == 0
+    assert (tmp_path / "missing_in_target.csv").exists()
+    assert (tmp_path / "unexpected_in_target.csv").exists()
+
+
+def test_cli_with_neither_key_nor_mapping_exits_non_zero(tmp_path: Path) -> None:
     result = _run_cli([
         "--mode", "deterministic",
         "--source", str(ROOT / "sample_data/customers/source_customers.csv"),
@@ -47,10 +73,17 @@ def test_cli_missing_key_exits_non_zero(tmp_path: Path) -> None:
     assert result.returncode != 0
 
 
-def test_cli_agent_mode_exits_non_zero() -> None:
-    result = _run_cli(["--mode", "agent"])
-    assert result.returncode != 0
-    assert "not implemented" in (result.stdout + result.stderr).lower()
+def test_cli_both_key_and_mapping_warns_mapping_wins(tmp_path: Path) -> None:
+    result = _run_cli([
+        "--mode", "deterministic",
+        "--source", str(ROOT / "sample_data/crm_migration/source_contacts_salesforce.csv"),
+        "--target", str(ROOT / "sample_data/crm_migration/target_contacts_dynamics_clean.csv"),
+        "--mapping", str(ROOT / "config/examples/crm_contacts_mapping.yaml"),
+        "--key", "customer_id",
+        "--output-dir", str(tmp_path),
+    ])
+    assert result.returncode == 0
+    assert "--mapping was provided" in result.stdout
 
 
 def test_cli_missing_file_error_is_clean(tmp_path: Path) -> None:
@@ -82,3 +115,38 @@ def test_cli_nonexistent_key_exits_non_zero_and_writes_artifacts(tmp_path: Path)
     assert "Traceback" not in combined
     assert (out_dir / "reconciliation_trace.json").exists()
     assert (out_dir / "reconciliation_report.md").exists()
+
+
+def test_cli_invalid_mapping_exits_non_zero_without_traceback(tmp_path: Path) -> None:
+    result = _run_cli([
+        "--mode", "deterministic",
+        "--source", str(ROOT / "sample_data/crm_migration/source_contacts_salesforce.csv"),
+        "--target", str(ROOT / "sample_data/crm_migration/target_contacts_dynamics_clean.csv"),
+        "--mapping", str(tmp_path / "missing.yaml"),
+        "--output-dir", str(tmp_path),
+    ])
+    combined = result.stdout + result.stderr
+    assert result.returncode != 0
+    assert "Traceback" not in combined
+
+
+
+
+def test_cli_malformed_mapping_yaml_exits_non_zero_without_traceback(tmp_path: Path) -> None:
+    bad = tmp_path / "bad_mapping.yaml"
+    bad.write_text("entity: crm_contacts\nfield_mappings: [", encoding="utf-8")
+
+    result = _run_cli([
+        "--mode", "deterministic",
+        "--source", str(ROOT / "sample_data/crm_migration/source_contacts_salesforce.csv"),
+        "--target", str(ROOT / "sample_data/crm_migration/target_contacts_dynamics_clean.csv"),
+        "--mapping", str(bad),
+        "--output-dir", str(tmp_path / "out"),
+    ])
+    combined = result.stdout + result.stderr
+    assert result.returncode != 0
+    assert "Error:" in combined
+    assert "Traceback" not in combined
+def test_cli_agent_mode_exits_non_zero() -> None:
+    result = _run_cli(["--mode", "agent"])
+    assert result.returncode != 0

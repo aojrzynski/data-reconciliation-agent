@@ -25,26 +25,38 @@ def main() -> int:
         print("Agent mode is planned for a later milestone and is not implemented yet.")
         return 2
 
-    if not args.source or not args.target or not args.key:
-        parser.error("deterministic mode requires --source, --target, and --key")
+    if not args.source or not args.target:
+        parser.error("deterministic mode requires --source and --target")
+    if not args.key and not args.mapping:
+        parser.error("deterministic mode requires either --key or --mapping")
 
-    if args.mapping:
-        print("Warning: --mapping is ignored in Milestone 2. Mapping config will be implemented in Milestone 3.")
     if args.llm_summary:
-        print("Warning: --llm-summary is ignored in Milestone 2. LLM polish is planned for a later milestone.")
+        print("Warning: --llm-summary is ignored in Milestone 3. LLM polish is planned for a later milestone.")
 
     from .reconciliation_engine import run_deterministic_reconciliation
 
     try:
-        result = run_deterministic_reconciliation(args.source, args.target, args.key, args.output_dir)
+        result = run_deterministic_reconciliation(
+            source_path=args.source,
+            target_path=args.target,
+            output_dir=args.output_dir,
+            key=args.key,
+            mapping_path=args.mapping,
+        )
     except (FileNotFoundError, ValueError) as exc:
         print(f"Error: {exc}")
         return 1
+
+    for warning in result.warnings:
+        print(f"Warning: {warning}")
 
     if result.blocking_errors:
         print("Deterministic reconciliation could not complete record-level comparison.")
     else:
         print("Deterministic reconciliation completed.")
+    print(f"Key mode: {result.key_mode}")
+    print(f"Source key: {result.source_key}")
+    print(f"Target key: {result.target_key}")
     print(f"Source rows: {result.source_row_count}")
     print(f"Target rows: {result.target_row_count}")
     print(f"Matched keys: {result.matched_key_count}")

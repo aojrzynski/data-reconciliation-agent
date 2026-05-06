@@ -1,12 +1,13 @@
 # Sample Reconciliation Scenarios
 
-Milestone 2 supports record-level deterministic reconciliation for same-name keys only.
+Milestone 3 supports deterministic record-level reconciliation for:
 
-**Milestone 2 does not yet check mapped field values.**
+- same-name keys via `--key`
+- different source/target key names via mapping config (`--mapping`)
 
-## Milestone 2 key-presence scenarios
+**Milestone 3 does not yet check mapped field values.**
 
-### Customers (`customer_id`)
+## Customers (`customer_id`)
 
 - Source: `sample_data/customers/source_customers.csv`
 
@@ -26,7 +27,7 @@ Milestone 2 supports record-level deterministic reconciliation for same-name key
 - Target: `sample_data/customers/target_customers_duplicate_keys.csv`
 - Expected duplicated target ID: `CUST-1006`.
 
-### Orders (`order_id`)
+## Orders (`order_id`)
 
 - Source: `sample_data/orders/source_orders.csv`
 
@@ -39,12 +40,17 @@ Milestone 2 supports record-level deterministic reconciliation for same-name key
 - Expected missing ID: `ORD-9012`.
 - Expected unexpected ID: `ORD-9999`.
 
-## Future value-comparison fixture notes (not checked in Milestone 2)
+## CRM migration (mapping-config key reconciliation)
 
-- `target_customers_value_mismatches.csv` includes deliberate differences in email, status, phone, date, and balance fields.
-- `target_orders_migration_issues.csv` also includes amount tolerance examples, a true amount mismatch, status casing differences, and date-format examples.
-- CRM fixtures (`sample_data/crm_migration/*`) are future mapping-config scenarios because source and target key names differ.
+CRM record-level reconciliation is now supported through mapping config.
 
-## CRM migration (future mapping-config scenario)
+- Source: `sample_data/crm_migration/source_contacts_salesforce.csv`
+- Clean target: `sample_data/crm_migration/target_contacts_dynamics_clean.csv`
+  - matched keys: `10`
+  - missing from target: `0`
+  - unexpected in target: `0`
+- Issues target: `sample_data/crm_migration/target_contacts_dynamics_issues.csv`
+  - missing source ID: `SF-007`
+  - unexpected target `legacy_salesforce_id`: `SF-999`
 
-CRM fixtures use different key names between source and target, so full reconciliation is deferred to Milestone 3 mapping-config implementation.
+CRM field mismatches are still future Milestone 4 checks.

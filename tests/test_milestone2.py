@@ -29,8 +29,6 @@ def test_unsupported_extension_raises() -> None:
         load_dataset(str(ROOT / "README.md"))
 
 
-
-
 def test_xlsx_load_with_tmp_file(tmp_path: Path) -> None:
     dataframe = pd.DataFrame({"id": ["A", "B"], "amount": [1, 2]})
     xlsx_path = tmp_path / "sample.xlsx"
@@ -66,26 +64,26 @@ def test_record_comparisons_customers_and_orders() -> None:
     c_extra = pd.read_csv(ROOT / "sample_data/customers/target_customers_extra_records.csv")
     c_dup = pd.read_csv(ROOT / "sample_data/customers/target_customers_duplicate_keys.csv")
 
-    assert missing_keys(c_source, c_clean, "customer_id").empty
-    assert unexpected_keys(c_source, c_clean, "customer_id").empty
+    assert missing_keys(c_source, c_clean, "customer_id", "customer_id").empty
+    assert unexpected_keys(c_source, c_clean, "customer_id", "customer_id").empty
     assert duplicate_keys(c_clean, "customer_id").empty
 
-    assert set(missing_keys(c_source, c_missing, "customer_id")["customer_id"]) == {"CUST-1003", "CUST-1009"}
-    assert set(unexpected_keys(c_source, c_extra, "customer_id")["customer_id"]) == {"CUST-2013", "CUST-2014"}
+    assert set(missing_keys(c_source, c_missing, "customer_id", "customer_id")["customer_id"]) == {"CUST-1003", "CUST-1009"}
+    assert set(unexpected_keys(c_source, c_extra, "customer_id", "customer_id")["customer_id"]) == {"CUST-2013", "CUST-2014"}
     assert set(duplicate_keys(c_dup, "customer_id")["customer_id"]) == {"CUST-1006"}
 
     o_source = pd.read_csv(ROOT / "sample_data/orders/source_orders.csv")
     o_issues = pd.read_csv(ROOT / "sample_data/orders/target_orders_migration_issues.csv")
-    assert set(missing_keys(o_source, o_issues, "order_id")["order_id"]) == {"ORD-9012"}
-    assert set(unexpected_keys(o_source, o_issues, "order_id")["order_id"]) == {"ORD-9999"}
+    assert set(missing_keys(o_source, o_issues, "order_id", "order_id")["order_id"]) == {"ORD-9012"}
+    assert set(unexpected_keys(o_source, o_issues, "order_id", "order_id")["order_id"]) == {"ORD-9999"}
 
 
 def test_artifacts_written(tmp_path: Path) -> None:
     result = run_deterministic_reconciliation(
-        str(ROOT / "sample_data/customers/source_customers.csv"),
-        str(ROOT / "sample_data/customers/target_customers_missing_records.csv"),
-        "customer_id",
-        str(tmp_path),
+        source_path=str(ROOT / "sample_data/customers/source_customers.csv"),
+        target_path=str(ROOT / "sample_data/customers/target_customers_missing_records.csv"),
+        key="customer_id",
+        output_dir=str(tmp_path),
     )
     trace_path = Path(result.trace_path)
     assert trace_path.exists()
@@ -97,33 +95,33 @@ def test_artifacts_written(tmp_path: Path) -> None:
     assert trace["output_files"]["trace"] == "reconciliation_trace.json"
     assert trace["output_files"]["report"] == "reconciliation_report.md"
     assert "exceptions_written" in trace["output_files"]
-    assert "exceptions_skipped" in trace["output_files"]
+    assert "exceptions_skipped_empty" in trace["output_files"]
     assert "duplicate_key_row_count_source" in trace["key_checks"]
     assert "duplicate_key_row_count_target" in trace["key_checks"]
 
     run_deterministic_reconciliation(
-        str(ROOT / "sample_data/customers/source_customers.csv"),
-        str(ROOT / "sample_data/customers/target_customers_extra_records.csv"),
-        "customer_id",
-        str(tmp_path / "extra"),
+        source_path=str(ROOT / "sample_data/customers/source_customers.csv"),
+        target_path=str(ROOT / "sample_data/customers/target_customers_extra_records.csv"),
+        key="customer_id",
+        output_dir=str(tmp_path / "extra"),
     )
     assert (tmp_path / "extra" / "unexpected_in_target.csv").exists()
 
     run_deterministic_reconciliation(
-        str(ROOT / "sample_data/customers/source_customers.csv"),
-        str(ROOT / "sample_data/customers/target_customers_duplicate_keys.csv"),
-        "customer_id",
-        str(tmp_path / "dup"),
+        source_path=str(ROOT / "sample_data/customers/source_customers.csv"),
+        target_path=str(ROOT / "sample_data/customers/target_customers_duplicate_keys.csv"),
+        key="customer_id",
+        output_dir=str(tmp_path / "dup"),
     )
     assert (tmp_path / "dup" / "duplicate_keys_target.csv").exists()
 
 
 def test_engine_missing_key_produces_blocking_error_and_artifacts(tmp_path: Path) -> None:
     result = run_deterministic_reconciliation(
-        str(ROOT / "sample_data/customers/source_customers.csv"),
-        str(ROOT / "sample_data/customers/target_customers_clean.csv"),
-        "not_a_real_key",
-        str(tmp_path / "missing_key"),
+        source_path=str(ROOT / "sample_data/customers/source_customers.csv"),
+        target_path=str(ROOT / "sample_data/customers/target_customers_clean.csv"),
+        key="not_a_real_key",
+        output_dir=str(tmp_path / "missing_key"),
     )
     assert result.blocking_errors
     assert result.matched_key_count == 0
