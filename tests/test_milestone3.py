@@ -168,5 +168,5 @@ def test_value_comparison_uses_normalized_key_lookup(tmp_path: Path) -> None:
         output_dir=str(out),
         mapping_path=str(mapping_path),
     )
-    mismatches = pd.read_csv(out / "value_mismatches.csv")
+    mismatches = pd.read_csv(out / "value_mismatches.csv", dtype=str)
     assert ((mismatches["key"] == "002") & (mismatches["source_field"] == "balance")).any()
