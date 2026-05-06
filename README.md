@@ -2,63 +2,55 @@
 
 Data Reconciliation Agent is a local-first, CLI-first Python project for validating whether a **target dataset preserved what mattered from a source dataset**.
 
-This project follows the same practical philosophy as the earlier Data Quality Triage Agent, but focuses on a different question:
+## Relationship to Data Quality Triage Agent
 
-- Data Quality Triage Agent: "What looks wrong inside one dataset?"
-- Data Reconciliation Agent: "Did the target dataset correctly preserve the important parts of the source dataset?"
+- Data Quality Triage Agent asks: **"What looks wrong inside one dataset?"**
+- Data Reconciliation Agent asks: **"Did the target preserve what mattered from the source?"**
 
 ## Problem this solves
 
-Teams migrating or re-platforming data need evidence, not intuition. This project is built for source-to-target validation workflows like:
+Teams doing migration or re-platforming work need source-to-target evidence, not intuition. Typical scenarios include:
+- CRM migration validation,
+- CSV export to target extract comparison,
+- legacy-to-modern system data preservation checks.
 
-- Salesforce to Dynamics migration
-- CSV export to warehouse extract validation
-- Legacy report to new report comparison
-- Pre-migration vs post-migration checks
+The goal is clear deterministic evidence about what matched, what was missing, and what changed.
 
 ## Why deterministic checks are authoritative
 
-Deterministic checks are the source of truth in this project because they are:
-
-- repeatable
-- testable
-- auditable
-- easy to explain to technical and non-technical stakeholders
-
-The core matching and mismatch detection logic belongs in deterministic code, not in model output.
-
-## What agent mode will eventually do
-
-Agent mode is an orchestration layer, not a replacement for deterministic reconciliation.
-
-Planned responsibilities for agent mode:
-
-- guide intake assumptions
-- coordinate mapping and key handling
-- choose bounded, deterministic tool steps
-- summarize findings and open questions
-
-Agent mode will not "decide by vibe" whether records match.
+- **Repeatable**: same inputs produce same outputs.
+- **Testable**: behavior is covered with deterministic tests.
+- **Auditable**: traces and exception artifacts are explicit.
+- **Bounded agent role**: agent mode coordinates execution but does not judge value equality.
 
 ## Current status
 
-**Milestone 4 implemented / mapped value comparison support**: deterministic reconciliation now runs record-level key matching and mapped field value comparison for matched keys when `--mapping` is provided, including comparator execution, value mismatch exceptions, and value comparison trace/report sections.
+**Milestone 5 implemented (current): bounded agent mode orchestration.**
 
-## Planned v1 features
+- Deterministic reconciliation engine remains authoritative.
+- Agent mode now works and coordinates bounded planning + deterministic execution.
+- Agent mode writes `agent_trace.json` and `agent_report.md` in addition to deterministic artifacts.
 
-- source and target row/column checks
-- key existence, null key, and duplicate key checks
-- missing and unexpected record detection
-- mapping-based field comparisons
-- basic string/number/date/datetime comparators with null handling
-- JSON trace outputs
-- markdown reconciliation report
-- exception CSV outputs
-- optional LLM-polished summary (non-authoritative)
+## What agent mode does and does not do
 
-## Example working CLI commands
+Agent mode **does**:
+- require source and target inputs,
+- resolve key/mapping strategy using explicit rules,
+- attempt bounded same-name key inference when key/mapping is not provided,
+- block safely when inference is ambiguous,
+- call deterministic reconciliation when plan is runnable,
+- record assumptions, warnings, blocking reasons, and execution artifacts.
 
-Same-name key reconciliation:
+Agent mode **does not**:
+- decide whether values match,
+- replace deterministic reconciliation logic,
+- use fuzzy matching,
+- auto-correct data,
+- require an LLM.
+
+## Example CLI commands
+
+Deterministic same-name key run:
 
 ```bash
 python -m data_reconciliation_agent.cli \
@@ -69,7 +61,7 @@ python -m data_reconciliation_agent.cli \
   --output-dir outputs/customers_clean_run
 ```
 
-Mapping-based reconciliation:
+Deterministic mapping run:
 
 ```bash
 python -m data_reconciliation_agent.cli \
@@ -80,37 +72,33 @@ python -m data_reconciliation_agent.cli \
   --output-dir outputs/crm_clean_run
 ```
 
+Agent mode run:
+
+```bash
+python -m data_reconciliation_agent.cli \
+  --source sample_data/customers/source_customers.csv \
+  --target sample_data/customers/target_customers_value_mismatches.csv \
+  --mode agent \
+  --output-dir outputs/customers_agent_run
+```
+
 ## Non-goals (v1)
 
-- building a fully autonomous general-purpose data agent
-- replacing deterministic checks with LLM judgments
-- distributed/cloud-first orchestration
-- heavy framework coupling
-- full cross-table relational reconciliation in first release
+- autonomous generalized agent behavior
+- replacing deterministic checks with model judgment
+- adding heavy agent frameworks
+- fuzzy matching and auto-correction
 
-## Fixture datasets for milestone development
+## Repository structure
 
-The repository includes realistic fixture families that support current and future milestones:
-
-- `sample_data/` for source/target CSV scenarios
-- `config/examples/` for mapping YAML examples that match those fixtures
-- `docs/sample_scenarios.md` for expected high-level outcomes by scenario
-
-## Repository structure summary
-
-- `src/data_reconciliation_agent/`: CLI and module skeletons
+- `src/data_reconciliation_agent/`: implementation
 - `config/`: default rules and mapping examples
-- `sample_data/`: scenario folders for fixtures
-- `outputs/`: output artifact destination
-- `docs/`: practical implementation and usage guides
-- `tests/`: automated test coverage
+- `sample_data/`: fixture datasets
+- `docs/`: usage and architecture guides
+- `tests/`: automated tests
 
-## Current scope limits
+## Fixtures and scenario pointers
 
-- Agent mode is not implemented yet.
-- LLM summary polish is not implemented yet.
-
-
-## Learning angle
-
-This repository is intended to be useful as both a small reconciliation tool and a learning repo for bounded data-agent architecture. The deterministic engine does the evidence-producing work; later agent mode will coordinate deterministic tools rather than replace them.
+- `sample_data/`: source/target fixture families
+- `config/examples/`: mapping examples aligned to fixtures
+- `docs/sample_scenarios.md`: expected scenario outcomes for learning and verification

@@ -1,61 +1,37 @@
 # Interpreting Outputs
 
-Deterministic mode produces inspectable artifacts:
+## Deterministic artifacts (canonical)
 
-- `reconciliation_trace.json`: machine-readable run metadata and counts.
+- `reconciliation_trace.json`: machine-readable deterministic run evidence.
 - `reconciliation_report.md`: human-readable deterministic summary.
-- Exception CSVs for concrete row-level exceptions.
+- Exception CSVs: concrete rows for missing/unexpected/duplicate/null key and value mismatches.
 
-## `reconciliation_trace.json`
+Use these artifacts for final reconciliation conclusions.
+
+## Agent artifacts (orchestration context)
+
+### `agent_trace.json`
 
 Key sections:
-- `mode`, `source_path`, `target_path`
-- `key_mode`, `source_key`, `target_key`
-- `mapping_config_path` and `mapping_config` (when mapping is used)
-- `key_checks`
-- `record_comparison`
-- `value_comparison`
-- `output_files`
-- `checks_skipped`, `warnings`, `blocking_errors`
+- top-level run context (`mode`, paths, inputs)
+- `plan` (status, key mode, assumptions, warnings, blocking errors, planned steps)
+- `key_candidates` (when inference was attempted)
+- `deterministic_run` summary (executed flag + deterministic artifact paths and counts)
+- top-level `warnings` and `blocking_errors`
+- `final_status`
 
-### `trace.value_comparison`
+### `agent_report.md`
 
-- `enabled`: whether mapped value comparison ran.
-- `skipped_reason`: why it did not run, if skipped.
-- `fields_compared`: number of configured mapped fields.
-- `matched_records_compared`: number of matched keys compared at value level.
-- `total_field_comparisons`: total field-level comparisons performed.
-- `mismatched_value_count`: number of mismatched mapped field values.
-- `mismatched_field_counts`: mismatch counts grouped by `source_field -> target_field`.
-- `comparators_used`: comparator types used in the run.
+Human-readable explanation of:
+- final status and plan status
+- key/mapping decision
+- assumptions, warnings, blocking errors
+- planned steps
+- deterministic artifact paths and counts when executed
+- explicit authority boundary statement
 
-Value comparison only runs for records matched by key. Missing and unexpected records are handled separately by record-level reconciliation.
+## Relationship between artifact types
 
-## `value_mismatches.csv`
-
-Written only when value comparison runs and mismatches exist.
-
-Columns:
-- `key`
-- `source_key`
-- `target_key`
-- `source_field`
-- `target_field`
-- `comparator`
-- `source_value`
-- `target_value`
-- `source_normalized`
-- `target_normalized`
-- `reason`
-
-If no mismatches exist, this file is not created and is listed under `output_files.exceptions_skipped_empty`.
-
-## Other exception CSV outputs
-
-When relevant rows exist, the run writes:
-- `missing_in_target.csv`
-- `unexpected_in_target.csv`
-- `duplicate_keys_source.csv`
-- `duplicate_keys_target.csv`
-- `null_keys_source.csv`
-- `null_keys_target.csv`
+- Agent artifacts explain **how the run was orchestrated**.
+- Deterministic artifacts show **what the deterministic engine concluded**.
+- When they differ in tone/detail, deterministic artifacts remain authoritative.

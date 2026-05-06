@@ -1,56 +1,44 @@
 # Roadmap
 
-## Milestone 0: Project foundation
-
+## Milestone 0: Project foundation (implemented)
 - repository scaffolding
 - core docs and architecture contract
 - CLI argument surface
 - module skeletons and baseline tests
 
-## Milestone 1: Fixtures and expected scenarios
-
-- small source/target fixtures for customers, orders, CRM contacts
-- expected outputs for happy path and failure path checks
-- test harness for scenario-driven development
+## Milestone 1: Fixtures and expected scenarios (implemented)
+- source/target fixtures for customers, orders, and CRM contacts
+- expected outcomes for happy and failure paths
+- scenario-driven test harness
 
 ## Milestone 2: Deterministic reconciliation v0 (implemented)
-
-- file intake and table-like loading for CSV/XLSX
-- row and column summary checks
+- file intake and loading for CSV/XLSX
 - key existence/null/duplicate checks
 - missing and unexpected record detection
 
 ## Milestone 3: Mapping config (implemented)
-
 - YAML mapping parser and validator
-- source/target key resolution via `source_key` and `target_key`
-- mapped column existence validation
-- mapping metadata in trace/report
-- record-level reconciliation for mismatched key names
+- source/target key resolution via mapping config
+- mapped column validation and trace metadata
 
-## Milestone 4: Value comparators and mapped field comparison (implemented / current)
+## Milestone 4: Value comparators and mapped field comparison (implemented)
+- string/number/date/datetime comparators
+- mapped field value comparison for matched keys
+- mismatch summaries and exception output
 
-- string comparator
-- numeric comparator with tolerance
-- date comparator
-- datetime comparator
-- null-handling comparator behavior
-
-## Milestone 5: Agent mode (planned)
-
-- deterministic tool orchestration flow
-- bounded planning and run coordination
-- transparent assumptions and execution plan output
+## Milestone 5: Bounded agent mode orchestration (implemented / current)
+- rule-based planner and explicit planned steps
+- bounded key inference for same-name keys
+- safe blocking on ambiguous assumptions
+- deterministic tool orchestration wrapper
+- `agent_trace.json` and `agent_report.md`
 
 ## Milestone 6: Optional LLM polish (planned)
-
-- optional report readability pass
+- optional readability pass for reports
 - explicit non-authoritative annotation
-- deterministic output remains canonical
+- deterministic outputs remain canonical
 
 ## Milestone 7: Hardening and teaching polish (planned)
-
-- error handling cleanup
-- stronger tests and edge cases
-- documentation walkthrough improvements
-- portfolio-ready examples and usage notes
+- stronger edge-case coverage
+- deeper documentation walkthroughs
+- additional sample scenarios
