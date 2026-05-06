@@ -114,3 +114,19 @@ The repository includes realistic fixture families that support current and futu
 ## Learning angle
 
 This repository is intended to be useful as both a small reconciliation tool and a learning repo for bounded data-agent architecture. The deterministic engine does the evidence-producing work; later agent mode will coordinate deterministic tools rather than replace them.
+
+
+## Milestone 5 Agent Mode
+
+Agent mode is now implemented as a bounded orchestration layer. It resolves key/mapping assumptions, writes `agent_trace.json` and `agent_report.md`, and then calls the deterministic engine. Deterministic outputs remain authoritative.
+
+
+### Agent mode example
+
+```bash
+python -m data_reconciliation_agent.cli \
+  --source sample_data/customers/source_customers.csv \
+  --target sample_data/customers/target_customers_value_mismatches.csv \
+  --mode agent \
+  --output-dir outputs/customers_agent_run
+```

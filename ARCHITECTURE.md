@@ -60,3 +60,8 @@ An optional LLM layer may improve report readability. It is non-authoritative an
 ## Why the agent does not directly decide whether data matches
 
 LLM output can be useful for communication, but it is not a reliable authority for exact data equality or mapping correctness. Deterministic checks provide consistent, testable, and repeatable judgments. The agent layer exists to orchestrate those checks, not replace them.
+
+
+## Milestone 5 Agent Mode
+
+Agent mode is now implemented as a bounded orchestration layer. It resolves key/mapping assumptions, writes `agent_trace.json` and `agent_report.md`, and then calls the deterministic engine. Deterministic outputs remain authoritative.

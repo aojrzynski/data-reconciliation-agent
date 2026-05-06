@@ -174,6 +174,36 @@ def test_cli_malformed_mapping_yaml_exits_non_zero_without_traceback(tmp_path: P
     assert result.returncode != 0
     assert "Error:" in combined
     assert "Traceback" not in combined
-def test_cli_agent_mode_exits_non_zero() -> None:
-    result = _run_cli(["--mode", "agent"])
+def test_cli_agent_customers_exits_zero_and_writes_outputs(tmp_path: Path) -> None:
+    result = _run_cli([
+        "--mode", "agent",
+        "--source", str(ROOT / "sample_data/customers/source_customers.csv"),
+        "--target", str(ROOT / "sample_data/customers/target_customers_clean.csv"),
+        "--output-dir", str(tmp_path),
+    ])
+    assert result.returncode == 0
+    assert (tmp_path / "agent_trace.json").exists()
+    assert (tmp_path / "agent_report.md").exists()
+
+
+def test_cli_agent_crm_without_mapping_exits_non_zero_and_writes_outputs(tmp_path: Path) -> None:
+    result = _run_cli([
+        "--mode", "agent",
+        "--source", str(ROOT / "sample_data/crm_migration/source_contacts_salesforce.csv"),
+        "--target", str(ROOT / "sample_data/crm_migration/target_contacts_dynamics_clean.csv"),
+        "--output-dir", str(tmp_path),
+    ])
     assert result.returncode != 0
+    assert (tmp_path / "agent_trace.json").exists()
+    assert (tmp_path / "agent_report.md").exists()
+
+
+def test_cli_agent_crm_mapping_exits_zero(tmp_path: Path) -> None:
+    result = _run_cli([
+        "--mode", "agent",
+        "--source", str(ROOT / "sample_data/crm_migration/source_contacts_salesforce.csv"),
+        "--target", str(ROOT / "sample_data/crm_migration/target_contacts_dynamics_clean.csv"),
+        "--mapping", str(ROOT / "config/examples/crm_contacts_mapping.yaml"),
+        "--output-dir", str(tmp_path),
+    ])
+    assert result.returncode == 0
