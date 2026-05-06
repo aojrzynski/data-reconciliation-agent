@@ -207,3 +207,16 @@ def test_cli_agent_crm_mapping_exits_zero(tmp_path: Path) -> None:
         "--output-dir", str(tmp_path),
     ])
     assert result.returncode == 0
+    assert "Source key: salesforce_contact_id" in result.stdout
+    assert "Target key: legacy_salesforce_id" in result.stdout
+
+
+def test_cli_agent_orders_without_key_exits_zero(tmp_path: Path) -> None:
+    result = _run_cli([
+        "--mode", "agent",
+        "--source", str(ROOT / "sample_data/orders/source_orders.csv"),
+        "--target", str(ROOT / "sample_data/orders/target_orders_clean.csv"),
+        "--output-dir", str(tmp_path),
+    ])
+    assert result.returncode == 0
+    assert "Source key: order_id" in result.stdout

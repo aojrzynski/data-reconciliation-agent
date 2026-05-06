@@ -24,12 +24,11 @@ def test_key_inference_orders_high_confidence() -> None:
     assert candidates[0].confidence == "high"
 
 
-def test_key_inference_crm_does_not_infer_different_names() -> None:
-    out = ROOT / "outputs" / "tmp_crm_blocked"
+def test_key_inference_crm_does_not_infer_different_names(tmp_path: Path) -> None:
     result = run_agent_reconciliation(
         source_path=str(ROOT / "sample_data/crm_migration/source_contacts_salesforce.csv"),
         target_path=str(ROOT / "sample_data/crm_migration/target_contacts_dynamics_clean.csv"),
-        output_dir=str(out),
+        output_dir=str(tmp_path),
     )
     assert result.status == "blocked"
 
@@ -55,6 +54,27 @@ def test_agent_mapping_runs(tmp_path: Path) -> None:
     )
     assert result.status == "completed"
     assert result.deterministic_result.value_comparison_enabled is True
+    assert result.plan.source_key == "salesforce_contact_id"
+    assert result.plan.target_key == "legacy_salesforce_id"
+
+
+def test_agent_orders_infers_order_id_and_runs(tmp_path: Path) -> None:
+    result = run_agent_reconciliation(
+        source_path=str(ROOT / "sample_data/orders/source_orders.csv"),
+        target_path=str(ROOT / "sample_data/orders/target_orders_clean.csv"),
+        output_dir=str(tmp_path),
+    )
+    assert result.status == "completed"
+    assert result.plan.source_key == "order_id"
+
+
+def test_ambiguous_high_candidates_block(tmp_path: Path) -> None:
+    source = tmp_path / "source.csv"
+    target = tmp_path / "target.csv"
+    source.write_text("order_id,customer_id\n1,10\n2,20\n3,30\n", encoding="utf-8")
+    target.write_text("order_id,customer_id\n1,10\n2,20\n3,30\n", encoding="utf-8")
+    result = run_agent_reconciliation(str(source), str(target), str(tmp_path / "out"))
+    assert result.status == "blocked"
 
 
 def test_agent_trace_includes_planned_steps_and_authoritative_language(tmp_path: Path) -> None:
@@ -65,5 +85,10 @@ def test_agent_trace_includes_planned_steps_and_authoritative_language(tmp_path:
     )
     payload = json.loads((tmp_path / "agent_trace.json").read_text(encoding="utf-8"))
     assert payload["plan"]["planned_steps"]
+    assert "warnings" in payload
+    assert "blocking_errors" in payload
+    assert "deterministic_run" in payload
     report = (tmp_path / "agent_report.md").read_text(encoding="utf-8")
     assert "did not decide whether values matched" in report
+    assert "Deterministic reconciliation outputs remain authoritative" in report
+    assert "Report path:" in report
