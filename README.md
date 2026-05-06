@@ -63,7 +63,7 @@ These represent intended usage once deterministic engine milestones are complete
 ```bash
 python -m data_reconciliation_agent.cli \
   --source sample_data/customers/source_customers.csv \
-  --target sample_data/customers/target_customers.csv \
+  --target sample_data/customers/target_customers_clean.csv \
   --key customer_id \
   --mapping config/examples/customers_mapping.yaml \
   --mode deterministic \
@@ -72,8 +72,8 @@ python -m data_reconciliation_agent.cli \
 
 ```bash
 python -m data_reconciliation_agent.cli \
-  --source sample_data/crm_migration/source_contacts.xlsx \
-  --target sample_data/crm_migration/target_contacts.xlsx \
+  --source sample_data/crm_migration/source_contacts_salesforce.csv \
+  --target sample_data/crm_migration/target_contacts_dynamics_clean.csv \
   --mapping config/examples/crm_contacts_mapping.yaml \
   --mode agent \
   --llm-summary
@@ -86,6 +86,17 @@ python -m data_reconciliation_agent.cli \
 - distributed/cloud-first orchestration
 - heavy framework coupling
 - full cross-table relational reconciliation in first release
+
+
+## Fixture datasets for milestone development
+
+The repository now includes realistic fixture families for future deterministic reconciliation implementation:
+
+- `sample_data/` for source/target CSV scenarios
+- `config/examples/` for mapping YAML examples that match those fixtures
+- `docs/sample_scenarios.md` for expected high-level outcomes by scenario
+
+These datasets are fixtures for implementation and testing. They do not imply the reconciliation engine is complete yet.
 
 ## Repository structure summary
 

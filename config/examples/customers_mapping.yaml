@@ -1,9 +1,41 @@
 entity: customers
-key: customer_id
+source_key: customer_id
+target_key: customer_id
 field_mappings:
-  - source: customer_id
-    target: customer_id
+  - source: first_name
+    target: given_name
     comparator: string
+    normalize:
+      trim: true
+      case_sensitive: false
+  - source: last_name
+    target: family_name
+    comparator: string
+    normalize:
+      trim: true
+      case_sensitive: false
   - source: email
     target: email_address
     comparator: string
+    normalize:
+      trim: true
+      case_sensitive: false
+  - source: phone
+    target: phone_number
+    comparator: string
+    normalize:
+      trim: true
+      case_sensitive: true
+  - source: status
+    target: account_status
+    comparator: string
+    normalize:
+      trim: true
+      case_sensitive: false
+  - source: signup_date
+    target: created_date
+    comparator: date
+  - source: account_balance
+    target: balance
+    comparator: number
+    tolerance: 0.01

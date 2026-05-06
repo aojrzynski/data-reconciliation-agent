@@ -1,0 +1,11 @@
+salesforce_contact_id,first_name,last_name,email,phone,contact_status,created_date,last_modified_date,owner_id
+SF-001,Alex,Walker,alex.walker@example.com,+1-646-555-1001,active,2023-11-01,2024-04-01,SF-OWNER-10
+SF-002,Nora,Hall,nora.hall@example.com,+1-646-555-1002,active,2023-11-04,2024-04-02,SF-OWNER-11
+SF-003,Ethan,Allen,ethan.allen@example.com,+1-646-555-1003,inactive,2023-11-08,2024-03-29,SF-OWNER-11
+SF-004,Grace,Wright,grace.wright@example.com,+1-646-555-1004,lead,2023-12-01,2024-04-05,SF-OWNER-12
+SF-005,Leo,Scott,leo.scott@example.com,+1-646-555-1005,active,2023-12-07,2024-04-06,SF-OWNER-12
+SF-006,Chloe,Green,chloe.green@example.com,+1-646-555-1006,active,2023-12-10,2024-04-08,SF-OWNER-13
+SF-007,David,Adams,david.adams@example.com,+1-646-555-1007,inactive,2024-01-03,2024-04-10,SF-OWNER-14
+SF-008,Lily,Baker,lily.baker@example.com,+1-646-555-1008,active,2024-01-11,2024-04-12,SF-OWNER-14
+SF-009,Jack,Nelson,jack.nelson@example.com,+1-646-555-1009,lead,2024-01-19,2024-04-15,SF-OWNER-15
+SF-010,Zoey,Carter,zoey.carter@example.com,+1-646-555-1010,active,2024-02-01,2024-04-18,SF-OWNER-15
