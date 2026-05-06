@@ -42,7 +42,7 @@ Agent mode will not "decide by vibe" whether records match.
 
 ## Current status
 
-**Milestone 2 implemented / deterministic reconciliation v0**: the CLI now performs record-level deterministic source-to-target reconciliation using an explicit same-name key column. It writes a JSON trace, markdown report, and exception CSV outputs for missing, unexpected, null-key, and duplicate-key findings.
+**Milestone 3 implemented / mapping config support**: the CLI supports record-level deterministic reconciliation using either an explicit same-name key (`--key`) or a YAML mapping file (`--mapping`) with `source_key` and `target_key`. Mapping config is currently used for key resolution and validation only. Mapped field value comparison starts in Milestone 4.
 
 ## Planned v1 features
 
@@ -56,9 +56,9 @@ Agent mode will not "decide by vibe" whether records match.
 - exception CSV outputs
 - optional LLM-polished summary (non-authoritative)
 
-## Example working CLI command (Milestone 2)
+## Example working CLI commands
 
-This command works now for record-level reconciliation with same-name keys:
+Same-name key reconciliation:
 
 ```bash
 python -m data_reconciliation_agent.cli \
@@ -69,6 +69,16 @@ python -m data_reconciliation_agent.cli \
   --output-dir outputs/customers_clean_run
 ```
 
+Mapping-based reconciliation:
+
+```bash
+python -m data_reconciliation_agent.cli \
+  --source sample_data/crm_migration/source_contacts_salesforce.csv \
+  --target sample_data/crm_migration/target_contacts_dynamics_clean.csv \
+  --mapping config/examples/crm_contacts_mapping.yaml \
+  --mode deterministic \
+  --output-dir outputs/crm_clean_run
+```
 
 ## Non-goals (v1)
 
@@ -78,38 +88,26 @@ python -m data_reconciliation_agent.cli \
 - heavy framework coupling
 - full cross-table relational reconciliation in first release
 
-
 ## Fixture datasets for milestone development
 
-The repository now includes realistic fixture families that support current and future milestones:
+The repository includes realistic fixture families that support current and future milestones:
 
 - `sample_data/` for source/target CSV scenarios
 - `config/examples/` for mapping YAML examples that match those fixtures
 - `docs/sample_scenarios.md` for expected high-level outcomes by scenario
 
-These datasets are fixtures for implementation and testing. They do not imply the reconciliation engine is complete yet.
-
 ## Repository structure summary
 
 - `src/data_reconciliation_agent/`: CLI and module skeletons
 - `config/`: default rules and mapping examples
-- `sample_data/`: scenario folders for future fixtures
+- `sample_data/`: scenario folders for fixtures
 - `outputs/`: output artifact destination
 - `docs/`: practical implementation and usage guides
-- `tests/`: lightweight automated test coverage
+- `tests/`: automated test coverage
 
-## Learning angle
+## Current scope limits
 
-This repository is designed to be understandable by technical recruiters, developers, analysts, and engineers learning bounded agent patterns. The writing is intentionally direct so readers can quickly see what is deterministic, what is orchestration, and where future milestones fit.
-
-
-## Milestone 2 scope limits
-
-- Mapping config execution is not implemented yet (planned for Milestone 3).
 - Field-level mapped value comparison is not implemented yet.
+- Comparator execution is not implemented yet.
 - Agent mode is not implemented yet.
 - LLM summary polish is not implemented yet.
-
-
-## Milestone 3 note
-Mapping config now supports `entity`, `source_key`, `target_key`, and `field_mappings` validation for deterministic key resolution. Mapped field value comparison/comparator execution starts in Milestone 4.

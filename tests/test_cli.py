@@ -18,6 +18,13 @@ def _run_cli(args: list[str]) -> subprocess.CompletedProcess[str]:
     )
 
 
+def test_cli_help_exits_successfully() -> None:
+    result = _run_cli(["--help"])
+    assert result.returncode == 0
+    assert "--source" in result.stdout
+    assert "--target" in result.stdout
+
+
 def test_cli_deterministic_clean_exits_zero(tmp_path: Path) -> None:
     result = _run_cli([
         "--mode", "deterministic",
@@ -38,6 +45,9 @@ def test_cli_mapping_crm_clean_exits_zero(tmp_path: Path) -> None:
         "--output-dir", str(tmp_path),
     ])
     assert result.returncode == 0
+    assert "Key mode: mapping_config" in result.stdout
+    assert "Source key: salesforce_contact_id" in result.stdout
+    assert "Target key: legacy_salesforce_id" in result.stdout
 
 
 def test_cli_mapping_crm_issues_writes_exceptions(tmp_path: Path) -> None:
@@ -74,6 +84,37 @@ def test_cli_both_key_and_mapping_warns_mapping_wins(tmp_path: Path) -> None:
     ])
     assert result.returncode == 0
     assert "--mapping was provided" in result.stdout
+
+
+def test_cli_missing_file_error_is_clean(tmp_path: Path) -> None:
+    result = _run_cli([
+        "--mode", "deterministic",
+        "--source", str(ROOT / "sample_data/customers/source_customers.csv"),
+        "--target", str(tmp_path / "does_not_exist.csv"),
+        "--key", "customer_id",
+        "--output-dir", str(tmp_path / "out"),
+    ])
+    combined = result.stdout + result.stderr
+    assert result.returncode != 0
+    assert "Error:" in combined
+    assert "Traceback" not in combined
+
+
+def test_cli_nonexistent_key_exits_non_zero_and_writes_artifacts(tmp_path: Path) -> None:
+    out_dir = tmp_path / "missing_key"
+    result = _run_cli([
+        "--mode", "deterministic",
+        "--source", str(ROOT / "sample_data/customers/source_customers.csv"),
+        "--target", str(ROOT / "sample_data/customers/target_customers_clean.csv"),
+        "--key", "not_a_real_key",
+        "--output-dir", str(out_dir),
+    ])
+    combined = result.stdout + result.stderr
+    assert result.returncode != 0
+    assert "could not complete record-level comparison" in combined
+    assert "Traceback" not in combined
+    assert (out_dir / "reconciliation_trace.json").exists()
+    assert (out_dir / "reconciliation_report.md").exists()
 
 
 def test_cli_invalid_mapping_exits_non_zero_without_traceback(tmp_path: Path) -> None:
