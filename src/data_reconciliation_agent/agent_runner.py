@@ -39,15 +39,32 @@ def run_agent_reconciliation(source_path: str, target_path: str, output_dir: str
     source = load_dataset(source_path)
     target = load_dataset(target_path)
     key_candidates = [] if key or mapping_path else infer_key_candidates(source.dataframe, target.dataframe)
-    plan = build_agent_plan(
-        source.path,
-        target.path,
-        key,
-        mapping_path,
-        key_candidates,
-        source_columns=list(source.dataframe.columns),
-        target_columns=list(target.dataframe.columns),
-    )
+    try:
+        plan = build_agent_plan(
+            source.path,
+            target.path,
+            key,
+            mapping_path,
+            key_candidates,
+            source_columns=list(source.dataframe.columns),
+            target_columns=list(target.dataframe.columns),
+        )
+    except (FileNotFoundError, ValueError) as exc:
+        plan = AgentPlan(
+            status="blocked",
+            mode="agent",
+            source_path=source.path,
+            target_path=target.path,
+            key_mode="mapping_config" if mapping_path else None,
+            source_key=None,
+            target_key=None,
+            mapping_path=mapping_path,
+            assumptions=[],
+            warnings=[str(exc)],
+            blocking_errors=[str(exc)],
+            planned_steps=[{"step": "load source dataset"}, {"step": "load target dataset"}, {"step": "resolve key/mapping assumptions"}, {"step": "write agent report/trace"}],
+            key_candidates=key_candidates,
+        )
 
     status = "completed"
     deterministic_result = None

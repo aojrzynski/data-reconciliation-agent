@@ -71,10 +71,22 @@ def test_agent_orders_infers_order_id_and_runs(tmp_path: Path) -> None:
 def test_ambiguous_high_candidates_block(tmp_path: Path) -> None:
     source = tmp_path / "source.csv"
     target = tmp_path / "target.csv"
-    source.write_text("order_id,customer_id\n1,10\n2,20\n3,30\n", encoding="utf-8")
+    source.write_text("customer_id,order_id\n10,1\n20,2\n30,3\n", encoding="utf-8")
     target.write_text("order_id,customer_id\n1,10\n2,20\n3,30\n", encoding="utf-8")
     result = run_agent_reconciliation(str(source), str(target), str(tmp_path / "out"))
     assert result.status == "blocked"
+
+
+def test_agent_invalid_mapping_path_writes_blocked_artifacts(tmp_path: Path) -> None:
+    result = run_agent_reconciliation(
+        source_path=str(ROOT / "sample_data/customers/source_customers.csv"),
+        target_path=str(ROOT / "sample_data/customers/target_customers_clean.csv"),
+        output_dir=str(tmp_path),
+        mapping_path=str(tmp_path / "missing_mapping.yaml"),
+    )
+    assert result.status == "blocked"
+    assert (tmp_path / "agent_trace.json").exists()
+    assert (tmp_path / "agent_report.md").exists()
 
 
 def test_agent_trace_includes_planned_steps_and_authoritative_language(tmp_path: Path) -> None:

@@ -220,3 +220,18 @@ def test_cli_agent_orders_without_key_exits_zero(tmp_path: Path) -> None:
     ])
     assert result.returncode == 0
     assert "Source key: order_id" in result.stdout
+
+
+def test_cli_agent_invalid_mapping_exits_non_zero_without_traceback(tmp_path: Path) -> None:
+    result = _run_cli([
+        "--mode", "agent",
+        "--source", str(ROOT / "sample_data/customers/source_customers.csv"),
+        "--target", str(ROOT / "sample_data/customers/target_customers_clean.csv"),
+        "--mapping", str(tmp_path / "missing.yaml"),
+        "--output-dir", str(tmp_path),
+    ])
+    combined = result.stdout + result.stderr
+    assert result.returncode != 0
+    assert "Traceback" not in combined
+    assert (tmp_path / "agent_trace.json").exists()
+    assert (tmp_path / "agent_report.md").exists()
