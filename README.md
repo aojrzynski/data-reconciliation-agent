@@ -42,7 +42,7 @@ Agent mode will not "decide by vibe" whether records match.
 
 ## Current status
 
-**Phase 0 foundation**: project contract, architecture docs, folder structure, and light code skeleton are in place. Real reconciliation logic is intentionally not implemented yet.
+**Milestone 1 in progress / fixture foundation**: project structure, architecture docs, CLI skeleton, realistic source/target fixture datasets, mapping examples, and sample scenario documentation are in place. Real reconciliation logic is intentionally not implemented yet.
 
 ## Planned v1 features
 
@@ -50,7 +50,7 @@ Agent mode will not "decide by vibe" whether records match.
 - key existence, null key, and duplicate key checks
 - missing and unexpected record detection
 - mapping-based field comparisons
-- basic string/number/date comparators with null handling
+- basic string/number/date/datetime comparators with null handling
 - JSON trace outputs
 - markdown reconciliation report
 - exception CSV outputs
