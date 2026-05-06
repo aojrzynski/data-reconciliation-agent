@@ -58,17 +58,17 @@ def write_report(output_dir: Path, report_data: dict) -> str:
         f"- Mapped fields compared: {report_data['value_comparison']['fields_compared']}",
         f"- Total field comparisons: {report_data['value_comparison']['total_field_comparisons']}",
         f"- Total value mismatches: {report_data['value_comparison']['mismatched_value_count']}",
-        "- Mismatches by field:",
+        "### Mismatches by field",
         "",
-        "## Exception files written",
     ])
     lines.extend(
-        [f"  - {k}: {v}" for k, v in report_data["value_comparison"]["mismatched_field_counts"].items()]
-        or ["  - (none)"]
+        [f"- {k}: {v}" for k, v in report_data["value_comparison"]["mismatched_field_counts"].items()]
+        or ["- (none)"]
     )
     lines.extend([
         f"- value_mismatches.csv written: {'value_mismatches.csv' in report_data['output_files']['exceptions_written']}",
         "",
+        "## Exception files written",
     ])
     lines.extend([f"- {n}" for n in report_data["output_files"]["exceptions_written"]] or ["- (none)"])
     lines.extend(["", "## Exception files not created because there were no relevant rows"])
