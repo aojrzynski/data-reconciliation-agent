@@ -45,3 +45,7 @@ When relevant rows exist, the run writes:
 - `null_keys_target.csv`
 
 To reduce clutter, empty exception files are not created. The trace/report lists skipped exception files when no relevant rows were found.
+
+
+## Milestone 3 note
+Mapping config now supports `entity`, `source_key`, `target_key`, and `field_mappings` validation for deterministic key resolution. Mapped field value comparison/comparator execution starts in Milestone 4.

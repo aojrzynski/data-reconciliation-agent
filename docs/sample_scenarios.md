@@ -48,3 +48,7 @@ Milestone 2 supports record-level deterministic reconciliation for same-name key
 ## CRM migration (future mapping-config scenario)
 
 CRM fixtures use different key names between source and target, so full reconciliation is deferred to Milestone 3 mapping-config implementation.
+
+
+## Milestone 3 note
+Mapping config now supports `entity`, `source_key`, `target_key`, and `field_mappings` validation for deterministic key resolution. Mapped field value comparison/comparator execution starts in Milestone 4.

@@ -109,3 +109,7 @@ This repository is designed to be understandable by technical recruiters, develo
 - Field-level mapped value comparison is not implemented yet.
 - Agent mode is not implemented yet.
 - LLM summary polish is not implemented yet.
+
+
+## Milestone 3 note
+Mapping config now supports `entity`, `source_key`, `target_key`, and `field_mappings` validation for deterministic key resolution. Mapped field value comparison/comparator execution starts in Milestone 4.

@@ -52,3 +52,7 @@
 - stronger tests and edge cases
 - documentation walkthrough improvements
 - portfolio-ready examples and usage notes
+
+
+## Milestone 3 note
+Mapping config now supports `entity`, `source_key`, `target_key`, and `field_mappings` validation for deterministic key resolution. Mapped field value comparison/comparator execution starts in Milestone 4.

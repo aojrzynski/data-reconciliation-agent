@@ -22,3 +22,7 @@ Planned deterministic comparators include:
 - datetime
 
 Examples live under `config/examples/`.
+
+
+## Milestone 3 note
+Mapping config now supports `entity`, `source_key`, `target_key`, and `field_mappings` validation for deterministic key resolution. Mapped field value comparison/comparator execution starts in Milestone 4.
