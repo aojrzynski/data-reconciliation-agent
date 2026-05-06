@@ -1,0 +1,8 @@
+version: 1
+rules:
+  nulls_equal: true
+  string_trim: true
+  case_sensitive: false
+  number_tolerance: 0.0
+  date_format: "iso8601"
+notes: "Phase 0 placeholder defaults. Deterministic engine behavior will be implemented in later milestones."

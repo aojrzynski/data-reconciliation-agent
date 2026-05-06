@@ -1,0 +1,9 @@
+entity: customers
+key: customer_id
+field_mappings:
+  - source: customer_id
+    target: customer_id
+    comparator: string
+  - source: email
+    target: email_address
+    comparator: string

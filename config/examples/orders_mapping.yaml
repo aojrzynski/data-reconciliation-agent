@@ -1,0 +1,10 @@
+entity: orders
+key: order_id
+field_mappings:
+  - source: order_id
+    target: order_id
+    comparator: string
+  - source: total_amount
+    target: amount_total
+    comparator: number
+    tolerance: 0.01
