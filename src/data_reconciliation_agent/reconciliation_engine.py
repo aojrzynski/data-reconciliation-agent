@@ -1,4 +1,4 @@
-"""Deterministic reconciliation engine for Milestone 3."""
+"""Deterministic reconciliation engine for Milestone 4."""
 
 from __future__ import annotations
 
@@ -6,6 +6,9 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
+import pandas as pd
+
+from .comparators import compare_values
 from .exception_writer import write_exception_csv
 from .intake import load_dataset
 from .mapping import load_mapping_config, mapping_config_to_trace_dict, validate_mapping_config
@@ -13,6 +16,11 @@ from .reconciliation_checks import duplicate_keys, key_exists, missing_keys, nul
 from .reporting import write_report
 from .schema_summary import build_schema_summary
 from .trace_writer import write_trace
+
+
+def _normalized_key_series(df: pd.DataFrame, key_column: str) -> pd.Series:
+    normalized = df[key_column].astype("string").str.strip()
+    return normalized.where(normalized.notna() & (normalized != ""))
 
 
 @dataclass(frozen=True)
@@ -30,6 +38,9 @@ class ReconciliationResult:
     key_mode: str
     source_key: str
     target_key: str
+    value_comparison_enabled: bool
+    value_mismatch_count: int
+    value_comparison_skipped_reason: str | None
 
 
 def run_deterministic_reconciliation(
@@ -76,6 +87,17 @@ def run_deterministic_reconciliation(
     null_source = duplicate_source = missing_df = source.dataframe.iloc[0:0].copy()
     null_target = duplicate_target = unexpected_df = target.dataframe.iloc[0:0].copy()
     matched_key_count = 0
+    value_comparison = {
+        "enabled": False,
+        "skipped_reason": None,
+        "fields_compared": 0,
+        "matched_records_compared": 0,
+        "total_field_comparisons": 0,
+        "mismatched_value_count": 0,
+        "mismatched_field_counts": {},
+        "comparators_used": [],
+    }
+    value_mismatch_rows: list[dict] = []
 
     if key_in_source:
         null_source = null_keys(source.dataframe, source_key)
@@ -104,8 +126,76 @@ def run_deterministic_reconciliation(
         source_keys.discard("")
         target_keys.discard("")
         matched_key_count = len(source_keys & target_keys)
+        if mapping_path and mapping_summary:
+            has_duplicate_keys = len(duplicate_source) > 0 or len(duplicate_target) > 0
+            if has_duplicate_keys:
+                value_comparison["skipped_reason"] = "duplicate keys present; row lookup is ambiguous"
+                skipped_steps.append(
+                    "Value comparison skipped because duplicate keys are present and matched row lookup is ambiguous."
+                )
+            else:
+                mapping_config = load_mapping_config(mapping_path)
+                value_comparison["enabled"] = True
+                value_comparison["fields_compared"] = len(mapping_config.field_mappings)
+                value_comparison["comparators_used"] = sorted({f.comparator for f in mapping_config.field_mappings})
+
+                source_norm_keys = _normalized_key_series(source.dataframe, source_key)
+                target_norm_keys = _normalized_key_series(target.dataframe, target_key)
+                source_by_norm_key = {
+                    key_value: row
+                    for key_value, row in source.dataframe.assign(_norm_key=source_norm_keys)
+                    .dropna(subset=["_norm_key"])
+                    .set_index("_norm_key")
+                    .iterrows()
+                }
+                target_by_norm_key = {
+                    key_value: row
+                    for key_value, row in target.dataframe.assign(_norm_key=target_norm_keys)
+                    .dropna(subset=["_norm_key"])
+                    .set_index("_norm_key")
+                    .iterrows()
+                }
+                matched_keys = sorted(source_keys & target_keys)
+                value_comparison["matched_records_compared"] = len(matched_keys)
+                for matched_key in matched_keys:
+                    source_row = source_by_norm_key[matched_key]
+                    target_row = target_by_norm_key[matched_key]
+                    for field_mapping in mapping_config.field_mappings:
+                        value_comparison["total_field_comparisons"] += 1
+                        source_value = source_row[field_mapping.source]
+                        target_value = target_row[field_mapping.target]
+                        outcome = compare_values(
+                            source_value=source_value,
+                            target_value=target_value,
+                            comparator=field_mapping.comparator,
+                            normalize=field_mapping.normalize,
+                            tolerance=field_mapping.tolerance,
+                        )
+                        if not outcome.matched:
+                            value_comparison["mismatched_value_count"] += 1
+                            field_id = f"{field_mapping.source} -> {field_mapping.target}"
+                            counts = value_comparison["mismatched_field_counts"]
+                            counts[field_id] = counts.get(field_id, 0) + 1
+                            value_mismatch_rows.append(
+                                {
+                                    "key": matched_key,
+                                    "source_key": source_key,
+                                    "target_key": target_key,
+                                    "source_field": field_mapping.source,
+                                    "target_field": field_mapping.target,
+                                    "comparator": field_mapping.comparator,
+                                    "source_value": str(source_value),
+                                    "target_value": str(target_value),
+                                    "source_normalized": outcome.source_normalized,
+                                    "target_normalized": outcome.target_normalized,
+                                    "reason": outcome.reason,
+                                }
+                            )
+        else:
+            value_comparison["skipped_reason"] = "no mapping config provided"
     else:
         skipped_steps.append("Record-level key comparison skipped because key columns are invalid or failed mapping validation.")
+        value_comparison["skipped_reason"] = "blocking errors or mapping validation errors"
 
     exceptions_written: list[str] = []
     exceptions_skipped_empty: list[str] = []
@@ -121,6 +211,14 @@ def run_deterministic_reconciliation(
             exceptions_written.append(filename)
         else:
             exceptions_skipped_empty.append(filename)
+    if value_comparison["enabled"]:
+        value_mismatch_df = pd.DataFrame(value_mismatch_rows)
+        if write_exception_csv(out, "value_mismatches.csv", value_mismatch_df):
+            exceptions_written.append("value_mismatches.csv")
+        else:
+            exceptions_skipped_empty.append("value_mismatches.csv")
+    else:
+        exceptions_skipped_empty.append("value_mismatches.csv")
 
     trace_filename = "reconciliation_trace.json"
     report_filename = "reconciliation_report.md"
@@ -155,6 +253,7 @@ def run_deterministic_reconciliation(
             "missing_in_target_count": len(missing_df),
             "unexpected_in_target_count": len(unexpected_df),
         },
+        "value_comparison": value_comparison,
         "output_files": {
             "trace": trace_filename,
             "report": report_filename,
@@ -184,4 +283,7 @@ def run_deterministic_reconciliation(
         key_mode=key_mode,
         source_key=source_key,
         target_key=target_key,
+        value_comparison_enabled=value_comparison["enabled"],
+        value_mismatch_count=value_comparison["mismatched_value_count"],
+        value_comparison_skipped_reason=value_comparison["skipped_reason"],
     )

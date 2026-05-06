@@ -132,3 +132,35 @@ def test_engine_missing_key_produces_blocking_error_and_artifacts(tmp_path: Path
     assert trace["blocking_errors"]
     assert any("not_a_real_key" in m for m in trace["blocking_errors"])
     assert trace["record_comparison"]["matched_key_count"] == 0
+
+
+def test_string_key_preservation_zero_padded_values_do_not_match_when_changed(tmp_path: Path) -> None:
+    source = tmp_path / "source.csv"
+    target = tmp_path / "target.csv"
+    source.write_text("id,value\n001,a\n", encoding="utf-8")
+    target.write_text("id,value\n1,a\n", encoding="utf-8")
+    result = run_deterministic_reconciliation(
+        source_path=str(source),
+        target_path=str(target),
+        output_dir=str(tmp_path / "out"),
+        key="id",
+    )
+    assert result.matched_key_count == 0
+    assert result.missing_in_target_count == 1
+    assert result.unexpected_in_target_count == 1
+
+
+def test_string_key_preservation_zero_padded_values_match_when_equal(tmp_path: Path) -> None:
+    source = tmp_path / "source.csv"
+    target = tmp_path / "target.csv"
+    source.write_text("id,value\n001,a\n", encoding="utf-8")
+    target.write_text("id,value\n001,a\n", encoding="utf-8")
+    result = run_deterministic_reconciliation(
+        source_path=str(source),
+        target_path=str(target),
+        output_dir=str(tmp_path / "out2"),
+        key="id",
+    )
+    assert result.matched_key_count == 1
+    assert result.missing_in_target_count == 0
+    assert result.unexpected_in_target_count == 0

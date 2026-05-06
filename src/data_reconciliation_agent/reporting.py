@@ -33,7 +33,6 @@ def write_report(output_dir: Path, report_data: dict) -> str:
             f"- Target key: `{mapping['target_key']}`",
             f"- Number of mapped fields: {mapping['mapped_field_count']}",
             f"- Planned comparator types: {', '.join(mapping['planned_comparators']) or '(none)'}",
-            "- Mapped field value comparison is not implemented in Milestone 3. Mapping is currently used for key resolution and validation only.",
             "",
         ])
 
@@ -50,6 +49,24 @@ def write_report(output_dir: Path, report_data: dict) -> str:
         f"- Matched keys: {report_data['record_comparison']['matched_key_count']}",
         f"- Missing from target: {report_data['record_comparison']['missing_in_target_count']}",
         f"- Unexpected in target: {report_data['record_comparison']['unexpected_in_target_count']}",
+        "",
+        "## Value comparison summary",
+        "Value comparison only runs for records matched by key. Missing and unexpected records are handled separately.",
+        f"- Ran: {report_data['value_comparison']['enabled']}",
+        f"- Skipped reason: {report_data['value_comparison']['skipped_reason'] or '(none)'}",
+        f"- Matched records compared: {report_data['value_comparison']['matched_records_compared']}",
+        f"- Mapped fields compared: {report_data['value_comparison']['fields_compared']}",
+        f"- Total field comparisons: {report_data['value_comparison']['total_field_comparisons']}",
+        f"- Total value mismatches: {report_data['value_comparison']['mismatched_value_count']}",
+        "### Mismatches by field",
+        "",
+    ])
+    lines.extend(
+        [f"- {k}: {v}" for k, v in report_data["value_comparison"]["mismatched_field_counts"].items()]
+        or ["- (none)"]
+    )
+    lines.extend([
+        f"- value_mismatches.csv written: {'value_mismatches.csv' in report_data['output_files']['exceptions_written']}",
         "",
         "## Exception files written",
     ])
