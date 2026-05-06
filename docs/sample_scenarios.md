@@ -6,7 +6,7 @@ Milestone 2 supports record-level deterministic reconciliation for same-name key
 
 ## Milestone 2 key-presence scenarios
 
-## Customers (`customer_id`)
+### Customers (`customer_id`)
 
 - Source: `sample_data/customers/source_customers.csv`
 
@@ -26,7 +26,7 @@ Milestone 2 supports record-level deterministic reconciliation for same-name key
 - Target: `sample_data/customers/target_customers_duplicate_keys.csv`
 - Expected duplicated target ID: `CUST-1006`.
 
-## Orders (`order_id`)
+### Orders (`order_id`)
 
 - Source: `sample_data/orders/source_orders.csv`
 

@@ -116,3 +116,21 @@ def test_artifacts_written(tmp_path: Path) -> None:
         str(tmp_path / "dup"),
     )
     assert (tmp_path / "dup" / "duplicate_keys_target.csv").exists()
+
+
+def test_engine_missing_key_produces_blocking_error_and_artifacts(tmp_path: Path) -> None:
+    result = run_deterministic_reconciliation(
+        str(ROOT / "sample_data/customers/source_customers.csv"),
+        str(ROOT / "sample_data/customers/target_customers_clean.csv"),
+        "not_a_real_key",
+        str(tmp_path / "missing_key"),
+    )
+    assert result.blocking_errors
+    assert result.matched_key_count == 0
+    assert Path(result.trace_path).exists()
+    assert Path(result.report_path).exists()
+
+    trace = json.loads(Path(result.trace_path).read_text())
+    assert trace["blocking_errors"]
+    assert any("not_a_real_key" in m for m in trace["blocking_errors"])
+    assert trace["record_comparison"]["matched_key_count"] == 0

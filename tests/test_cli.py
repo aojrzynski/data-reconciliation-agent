@@ -65,3 +65,20 @@ def test_cli_missing_file_error_is_clean(tmp_path: Path) -> None:
     assert result.returncode != 0
     assert "Error:" in combined
     assert "Traceback" not in combined
+
+
+def test_cli_nonexistent_key_exits_non_zero_and_writes_artifacts(tmp_path: Path) -> None:
+    out_dir = tmp_path / "missing_key"
+    result = _run_cli([
+        "--mode", "deterministic",
+        "--source", str(ROOT / "sample_data/customers/source_customers.csv"),
+        "--target", str(ROOT / "sample_data/customers/target_customers_clean.csv"),
+        "--key", "not_a_real_key",
+        "--output-dir", str(out_dir),
+    ])
+    combined = result.stdout + result.stderr
+    assert result.returncode != 0
+    assert "could not complete record-level comparison" in combined
+    assert "Traceback" not in combined
+    assert (out_dir / "reconciliation_trace.json").exists()
+    assert (out_dir / "reconciliation_report.md").exists()

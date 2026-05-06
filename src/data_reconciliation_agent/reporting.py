@@ -51,6 +51,9 @@ def write_report(output_dir: Path, report_data: dict) -> str:
     lines.extend(["", "## Warnings"])
     lines.extend([f"- {warning}" for warning in report_data["warnings"]] or ["- (none)"])
 
+    lines.extend(["", "## Blocking errors"])
+    lines.extend([f"- {error}" for error in report_data["blocking_errors"]] or ["- (none)"])
+
     lines.extend(["", "## Skipped checks"])
     lines.extend([f"- {step}" for step in report_data["skipped_steps"]] or ["- (none)"])
 

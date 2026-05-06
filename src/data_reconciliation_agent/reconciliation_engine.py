@@ -24,6 +24,7 @@ class ReconciliationResult:
     report_path: str
     trace_path: str
     warnings: list[str]
+    blocking_errors: list[str]
     skipped_steps: list[str]
 
 
@@ -38,6 +39,7 @@ def run_deterministic_reconciliation(source_path: str, target_path: str, key: st
     key_in_source = key_exists(source.dataframe, key)
     key_in_target = key_exists(target.dataframe, key)
     warnings: list[str] = []
+    blocking_errors: list[str] = []
     skipped_steps: list[str] = []
 
     null_source = duplicate_source = missing_df = source.dataframe.iloc[0:0].copy()
@@ -48,12 +50,16 @@ def run_deterministic_reconciliation(source_path: str, target_path: str, key: st
         null_source = null_keys(source.dataframe, key)
         duplicate_source = duplicate_keys(source.dataframe, key)
     else:
-        warnings.append(f"Key column '{key}' not found in source dataset.")
+        message = f"Key column '{key}' not found in source dataset."
+        warnings.append(message)
+        blocking_errors.append(message)
     if key_in_target:
         null_target = null_keys(target.dataframe, key)
         duplicate_target = duplicate_keys(target.dataframe, key)
     else:
-        warnings.append(f"Key column '{key}' not found in target dataset.")
+        message = f"Key column '{key}' not found in target dataset."
+        warnings.append(message)
+        blocking_errors.append(message)
 
     if key_in_source and key_in_target:
         missing_df = missing_keys(source.dataframe, target.dataframe, key)
@@ -117,6 +123,7 @@ def run_deterministic_reconciliation(source_path: str, target_path: str, key: st
             "exceptions_skipped": exceptions_skipped,
         },
         "warnings": warnings,
+        "blocking_errors": blocking_errors,
         "skipped_steps": skipped_steps,
     }
 
@@ -132,5 +139,6 @@ def run_deterministic_reconciliation(source_path: str, target_path: str, key: st
         report_path=report_path,
         trace_path=trace_path,
         warnings=warnings,
+        blocking_errors=blocking_errors,
         skipped_steps=skipped_steps,
     )

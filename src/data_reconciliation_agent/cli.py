@@ -41,7 +41,10 @@ def main() -> int:
         print(f"Error: {exc}")
         return 1
 
-    print("Deterministic reconciliation completed.")
+    if result.blocking_errors:
+        print("Deterministic reconciliation could not complete record-level comparison.")
+    else:
+        print("Deterministic reconciliation completed.")
     print(f"Source rows: {result.source_row_count}")
     print(f"Target rows: {result.target_row_count}")
     print(f"Matched keys: {result.matched_key_count}")
@@ -49,6 +52,10 @@ def main() -> int:
     print(f"Unexpected in target: {result.unexpected_in_target_count}")
     print(f"Report path: {result.report_path}")
     print(f"Trace path: {result.trace_path}")
+    if result.blocking_errors:
+        for error in result.blocking_errors:
+            print(f"Blocking error: {error}")
+        return 1
     return 0
 
 

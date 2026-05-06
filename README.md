@@ -81,7 +81,7 @@ python -m data_reconciliation_agent.cli \
 
 ## Fixture datasets for milestone development
 
-The repository now includes realistic fixture families for future deterministic reconciliation implementation:
+The repository now includes realistic fixture families that support current and future milestones:
 
 - `sample_data/` for source/target CSV scenarios
 - `config/examples/` for mapping YAML examples that match those fixtures
