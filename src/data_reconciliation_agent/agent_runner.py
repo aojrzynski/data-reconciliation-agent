@@ -108,6 +108,7 @@ def run_agent_reconciliation(source_path: str, target_path: str, output_dir: str
             "unexpected_in_target_count": getattr(deterministic_result, "unexpected_in_target_count", None),
             "value_mismatch_count": getattr(deterministic_result, "value_mismatch_count", None),
         },
+        "llm_summary": None,
         "warnings": warnings,
         "blocking_errors": blocking_errors,
         "final_status": status,

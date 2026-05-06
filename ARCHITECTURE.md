@@ -2,7 +2,7 @@
 
 ## Runtime flow
 
-`CLI -> agent_runner -> planner -> tools -> deterministic engine -> reports/traces`
+`CLI -> agent_runner -> planner -> tools -> deterministic engine -> reports/traces -> optional llm_summary`
 
 Deterministic mode is a direct path from CLI to deterministic engine. Agent mode uses the full orchestration path above.
 
@@ -24,3 +24,6 @@ Deterministic mode is a direct path from CLI to deterministic engine. Agent mode
 Agent layer coordinates execution and documents assumptions.
 It does not decide whether values match.
 Deterministic outputs remain authoritative.
+
+
+Optional LLM polish is a final non-authoritative layer after deterministic artifacts are written.

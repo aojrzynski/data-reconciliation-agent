@@ -13,7 +13,6 @@ def run_reconciliation_tool(plan: AgentPlan, output_dir: str) -> ReconciliationR
             target_path=plan.target_path,
             output_dir=output_dir,
             mapping_path=plan.mapping_path,
-            key=plan.source_key,
         )
     return run_deterministic_reconciliation(
         source_path=plan.source_path,

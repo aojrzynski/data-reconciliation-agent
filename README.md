@@ -25,7 +25,7 @@ The goal is clear deterministic evidence about what matched, what was missing, a
 
 ## Current status
 
-**Milestone 5 implemented (current): bounded agent mode orchestration.**
+**Milestone 6 implemented (current): optional LLM polish.**
 
 - Deterministic reconciliation engine remains authoritative.
 - Agent mode now works and coordinates bounded planning + deterministic execution.
@@ -102,3 +102,17 @@ python -m data_reconciliation_agent.cli \
 - `sample_data/`: source/target fixture families
 - `config/examples/`: mapping examples aligned to fixtures
 - `docs/sample_scenarios.md`: expected scenario outcomes for learning and verification
+
+
+Optional LLM summary (`--llm-summary`) is non-authoritative, uses only deterministic trace metadata, does not inspect raw datasets or exception row contents, and never replaces deterministic outputs. By default it writes a deterministic fallback summary; external provider polish is optional and provider-ready.
+
+Example with optional summary:
+```bash
+python -m data_reconciliation_agent.cli \
+  --source sample_data/customers/source_customers.csv \
+  --target sample_data/customers/target_customers_clean.csv \
+  --key customer_id \
+  --mode deterministic \
+  --llm-summary \
+  --output-dir outputs/customers_with_llm_summary
+```

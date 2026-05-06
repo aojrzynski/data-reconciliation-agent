@@ -56,6 +56,20 @@ def test_agent_mapping_runs(tmp_path: Path) -> None:
     assert result.deterministic_result.value_comparison_enabled is True
     assert result.plan.source_key == "salesforce_contact_id"
     assert result.plan.target_key == "legacy_salesforce_id"
+    report = (tmp_path / "reconciliation_report.md").read_text(encoding="utf-8")
+    assert "--mapping was provided" not in report
+
+
+def test_agent_customer_mapping_has_no_mapping_key_warning(tmp_path: Path) -> None:
+    result = run_agent_reconciliation(
+        source_path=str(ROOT / "sample_data/customers/source_customers.csv"),
+        target_path=str(ROOT / "sample_data/customers/target_customers_clean.csv"),
+        output_dir=str(tmp_path),
+        mapping_path=str(ROOT / "config/examples/customers_mapping.yaml"),
+    )
+    assert result.status == "completed"
+    trace = (tmp_path / "reconciliation_trace.json").read_text(encoding="utf-8")
+    assert "--mapping was provided" not in trace
 
 
 def test_agent_orders_infers_order_id_and_runs(tmp_path: Path) -> None:
