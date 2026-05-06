@@ -20,7 +20,7 @@
 - key existence/null/duplicate checks
 - missing and unexpected record detection
 
-## Milestone 3: Mapping config (implemented / current)
+## Milestone 3: Mapping config (implemented)
 
 - YAML mapping parser and validator
 - source/target key resolution via `source_key` and `target_key`
@@ -28,7 +28,7 @@
 - mapping metadata in trace/report
 - record-level reconciliation for mismatched key names
 
-## Milestone 4: Value comparators (planned)
+## Milestone 4: Value comparators and mapped field comparison (implemented / current)
 
 - string comparator
 - numeric comparator with tolerance

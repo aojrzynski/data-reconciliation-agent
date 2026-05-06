@@ -42,7 +42,7 @@ Agent mode will not "decide by vibe" whether records match.
 
 ## Current status
 
-**Milestone 3 implemented / mapping config support**: the CLI supports record-level deterministic reconciliation using either an explicit same-name key (`--key`) or a YAML mapping file (`--mapping`) with `source_key` and `target_key`. Mapping config is currently used for key resolution and validation only. Mapped field value comparison starts in Milestone 4.
+**Milestone 4 implemented / mapped value comparison support**: deterministic reconciliation now runs record-level key matching and mapped field value comparison for matched keys when `--mapping` is provided, including comparator execution, value mismatch exceptions, and value comparison trace/report sections.
 
 ## Planned v1 features
 
@@ -107,8 +107,6 @@ The repository includes realistic fixture families that support current and futu
 
 ## Current scope limits
 
-- Field-level mapped value comparison is not implemented yet.
-- Comparator execution is not implemented yet.
 - Agent mode is not implemented yet.
 - LLM summary polish is not implemented yet.
 

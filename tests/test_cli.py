@@ -61,6 +61,21 @@ def test_cli_mapping_crm_issues_writes_exceptions(tmp_path: Path) -> None:
     assert result.returncode == 0
     assert (tmp_path / "missing_in_target.csv").exists()
     assert (tmp_path / "unexpected_in_target.csv").exists()
+    assert (tmp_path / "value_mismatches.csv").exists()
+    assert "Value comparison: ran" in result.stdout
+    assert "Value mismatches:" in result.stdout
+
+
+def test_cli_same_name_key_without_mapping_shows_value_comparison_skipped(tmp_path: Path) -> None:
+    result = _run_cli([
+        "--mode", "deterministic",
+        "--source", str(ROOT / "sample_data/customers/source_customers.csv"),
+        "--target", str(ROOT / "sample_data/customers/target_customers_clean.csv"),
+        "--key", "customer_id",
+        "--output-dir", str(tmp_path),
+    ])
+    assert result.returncode == 0
+    assert "Value comparison: skipped - no mapping config provided" in result.stdout
 
 
 def test_cli_with_neither_key_nor_mapping_exits_non_zero(tmp_path: Path) -> None:

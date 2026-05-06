@@ -1,11 +1,11 @@
 # Sample Reconciliation Scenarios
 
-Milestone 3 supports deterministic record-level reconciliation for:
+Milestone 4 supports deterministic record-level reconciliation and mapped value comparison for:
 
 - same-name keys via `--key`
 - different source/target key names via mapping config (`--mapping`)
 
-**Milestone 3 does not yet check mapped field values.**
+Mapped field values are compared only for records matched by key.
 
 ## Customers (`customer_id`)
 
@@ -53,4 +53,4 @@ CRM record-level reconciliation is now supported through mapping config.
   - missing source ID: `SF-007`
   - unexpected target `legacy_salesforce_id`: `SF-999`
 
-CRM field mismatches are still future Milestone 4 checks.
+CRM issue fixtures now include mapped value mismatches in `value_mismatches.csv`.

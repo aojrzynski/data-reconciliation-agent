@@ -62,6 +62,11 @@ def main() -> int:
     print(f"Matched keys: {result.matched_key_count}")
     print(f"Missing from target: {result.missing_in_target_count}")
     print(f"Unexpected in target: {result.unexpected_in_target_count}")
+    if result.value_comparison_enabled:
+        print("Value comparison: ran")
+    else:
+        print("Value comparison: skipped - no mapping config provided" if args.mapping is None else "Value comparison: skipped - blocking errors or mapping validation errors")
+    print(f"Value mismatches: {result.value_mismatch_count}")
     print(f"Report path: {result.report_path}")
     print(f"Trace path: {result.trace_path}")
     if result.blocking_errors:

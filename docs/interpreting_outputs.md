@@ -58,4 +58,4 @@ When relevant rows exist, the run writes:
 
 If an exception output has no rows, the file is not created and is listed under `exceptions_skipped_empty` (not under skipped checks).
 
-Milestone 3 does not yet execute mapped field value comparison.
+Mapped value comparison runs only when mapping config is provided and key comparison is valid.

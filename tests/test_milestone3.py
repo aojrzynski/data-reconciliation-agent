@@ -73,3 +73,21 @@ def test_crm_mapping_reconciliation_issues(tmp_path: Path) -> None:
     assert trace["target_key"] == "legacy_salesforce_id"
     assert trace["mapping_config"]["entity"] == "crm_contacts"
     assert "exceptions_skipped_empty" in trace["output_files"]
+    assert trace["value_comparison"]["enabled"] is True
+    assert trace["value_comparison"]["mismatched_value_count"] > 0
+    assert (out / "value_mismatches.csv").exists()
+
+
+def test_orders_mapping_value_comparison_only_for_matched_keys(tmp_path: Path) -> None:
+    out = tmp_path / "orders"
+    result = run_deterministic_reconciliation(
+        source_path=str(ROOT / "sample_data/orders/source_orders.csv"),
+        target_path=str(ROOT / "sample_data/orders/target_orders_migration_issues.csv"),
+        output_dir=str(out),
+        mapping_path=str(ROOT / "config/examples/orders_mapping.yaml"),
+    )
+    assert result.missing_in_target_count == 1
+    assert result.unexpected_in_target_count == 1
+    mismatches = pd.read_csv(out / "value_mismatches.csv")
+    assert not ((mismatches["source_field"] == "amount") & (mismatches["source_value"] == "1000.009")).any()
+    assert ((mismatches["source_field"] == "amount") & (mismatches["target_value"] == "42.0")).any()
