@@ -1,0 +1,9 @@
+entity: crm_contacts
+key: contact_id
+field_mappings:
+  - source: contact_id
+    target: crm_contact_id
+    comparator: string
+  - source: created_at
+    target: created_date
+    comparator: date
