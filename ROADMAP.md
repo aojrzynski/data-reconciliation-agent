@@ -33,7 +33,7 @@
 - deterministic tool orchestration wrapper
 - `agent_trace.json` and `agent_report.md`
 
-## Milestone 6: Optional LLM polish (planned)
+## Milestone 6: Optional LLM polish (implemented / current)
 - optional readability pass for reports
 - explicit non-authoritative annotation
 - deterministic outputs remain canonical

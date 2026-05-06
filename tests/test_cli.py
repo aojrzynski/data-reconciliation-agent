@@ -209,6 +209,8 @@ def test_cli_agent_crm_mapping_exits_zero(tmp_path: Path) -> None:
     assert result.returncode == 0
     assert "Source key: salesforce_contact_id" in result.stdout
     assert "Target key: legacy_salesforce_id" in result.stdout
+    trace = (tmp_path / "reconciliation_trace.json").read_text(encoding="utf-8")
+    assert "--mapping was provided" not in trace
 
 
 def test_cli_agent_orders_without_key_exits_zero(tmp_path: Path) -> None:
@@ -235,3 +237,29 @@ def test_cli_agent_invalid_mapping_exits_non_zero_without_traceback(tmp_path: Pa
     assert "Traceback" not in combined
     assert (tmp_path / "agent_trace.json").exists()
     assert (tmp_path / "agent_report.md").exists()
+
+
+def test_cli_deterministic_llm_summary_writes_file(tmp_path: Path) -> None:
+    result = _run_cli([
+        "--mode", "deterministic",
+        "--source", str(ROOT / "sample_data/customers/source_customers.csv"),
+        "--target", str(ROOT / "sample_data/customers/target_customers_clean.csv"),
+        "--key", "customer_id",
+        "--llm-summary",
+        "--output-dir", str(tmp_path),
+    ])
+    assert result.returncode == 0
+    assert (tmp_path / "llm_summary.md").exists()
+    assert "LLM summary: skipped -" in result.stdout
+
+
+def test_cli_agent_llm_summary_blocked_does_not_crash(tmp_path: Path) -> None:
+    result = _run_cli([
+        "--mode", "agent",
+        "--source", str(ROOT / "sample_data/crm_migration/source_contacts_salesforce.csv"),
+        "--target", str(ROOT / "sample_data/crm_migration/target_contacts_dynamics_clean.csv"),
+        "--llm-summary",
+        "--output-dir", str(tmp_path),
+    ])
+    assert result.returncode != 0
+    assert "LLM summary: skipped - deterministic reconciliation did not execute" in result.stdout

@@ -3,6 +3,10 @@
 from __future__ import annotations
 
 import argparse
+import json
+from pathlib import Path
+
+from .llm_summary import LLMSummaryResult, generate_llm_summary
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -28,8 +32,6 @@ def main() -> int:
     if args.mode == "agent":
         from .agent_runner import run_agent_reconciliation
 
-        if args.llm_summary:
-            print("Warning: --llm-summary is planned for a later milestone and is ignored.")
         try:
             result = run_agent_reconciliation(
                 source_path=args.source,
@@ -38,6 +40,7 @@ def main() -> int:
                 key=args.key,
                 mapping_path=args.mapping,
                 confirm_assumptions=args.confirm_assumptions,
+                llm_summary_requested=args.llm_summary,
             )
         except (FileNotFoundError, ValueError) as exc:
             print(f"Error: {exc}")
@@ -53,17 +56,48 @@ def main() -> int:
             print(f"Deterministic trace path: {result.deterministic_result.trace_path}")
         print(f"Agent report path: {result.agent_report_path}")
         print(f"Agent trace path: {result.agent_trace_path}")
+        llm_result: LLMSummaryResult | None = None
+        if args.llm_summary:
+            if result.deterministic_result:
+                llm_result = generate_llm_summary(result.deterministic_result.trace_path, args.output_dir)
+            else:
+                llm_result = LLMSummaryResult(
+                    enabled=True,
+                    generated=False,
+                    skipped_reason="deterministic reconciliation did not execute",
+                    provider=None,
+                    output_path=None,
+                    warnings=[],
+                )
+            if llm_result.generated:
+                print(f"LLM summary: generated at {llm_result.output_path}")
+            else:
+                print(f"LLM summary: skipped - {llm_result.skipped_reason}")
         for warning in result.warnings:
             print(f"Warning: {warning}")
         for error in result.blocking_errors:
             print(f"Blocking error: {error}")
+        if args.llm_summary:
+            agent_trace = Path(result.agent_trace_path)
+            payload = json.loads(agent_trace.read_text(encoding="utf-8"))
+            payload["llm_summary"] = llm_result.__dict__
+            agent_trace.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+            report_path = Path(result.agent_report_path)
+            existing = report_path.read_text(encoding="utf-8")
+            report_path.write_text(
+                existing
+                + "\n## Optional LLM summary\n"
+                + f"- Generated: {llm_result.generated}\n"
+                + f"- Provider: {llm_result.provider}\n"
+                + f"- Output path: {llm_result.output_path}\n"
+                + f"- Skipped reason: {llm_result.skipped_reason}\n"
+                + "- Non-authoritative: deterministic artifacts remain source of truth.\n",
+                encoding="utf-8",
+            )
         return 0 if result.status == "completed" else 1
 
     if not args.key and not args.mapping:
         parser.error("deterministic mode requires either --key or --mapping")
-
-    if args.llm_summary:
-        print("Warning: --llm-summary is ignored in Milestone 4. LLM polish is planned for a later milestone.")
 
     from .reconciliation_engine import run_deterministic_reconciliation
 
@@ -102,6 +136,27 @@ def main() -> int:
     print(f"Value mismatches: {result.value_mismatch_count}")
     print(f"Report path: {result.report_path}")
     print(f"Trace path: {result.trace_path}")
+    if args.llm_summary:
+        llm_result = generate_llm_summary(result.trace_path, args.output_dir)
+        if llm_result.generated:
+            print(f"LLM summary: generated at {llm_result.output_path}")
+        else:
+            print(f"LLM summary: skipped - {llm_result.skipped_reason}")
+        trace_path = Path(result.trace_path)
+        trace_data = json.loads(trace_path.read_text(encoding="utf-8"))
+        trace_data["llm_summary"] = llm_result.__dict__ | {"requested": True}
+        trace_path.write_text(json.dumps(trace_data, indent=2, sort_keys=True), encoding="utf-8")
+        report_path = Path(result.report_path)
+        report_path.write_text(
+            report_path.read_text(encoding="utf-8")
+            + "\n## Optional LLM summary\n"
+            + f"- Generated: {llm_result.generated}\n"
+            + f"- Provider: {llm_result.provider}\n"
+            + f"- Output path: {llm_result.output_path}\n"
+            + f"- Skipped reason: {llm_result.skipped_reason}\n"
+            + "- Non-authoritative: deterministic artifacts remain source of truth.\n",
+            encoding="utf-8",
+        )
     if result.blocking_errors:
         for error in result.blocking_errors:
             print(f"Blocking error: {error}")
