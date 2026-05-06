@@ -1,79 +1,50 @@
 # Sample Reconciliation Scenarios
 
-This document explains the fixture datasets used to validate future deterministic reconciliation logic.
+Milestone 2 supports record-level deterministic reconciliation for same-name keys only.
 
-These files are test fixtures and learning assets. They are not proof that reconciliation is implemented.
+**Milestone 2 does not yet check mapped field values.**
 
-## Customers
+## Milestone 2 key-presence scenarios
 
-- Source file: `sample_data/customers/source_customers.csv`
-- Mapping file: `config/examples/customers_mapping.yaml`
+### Customers (`customer_id`)
 
-### Scenario: clean migration
-- Target file: `sample_data/customers/target_customers_clean.csv`
-- Demonstrates: a correctly migrated target with renamed columns.
-- Expected high-level result: no missing records, no unexpected records, no duplicate keys, and no mapped value mismatches.
+- Source: `sample_data/customers/source_customers.csv`
 
-### Scenario: missing records
-- Target file: `sample_data/customers/target_customers_missing_records.csv`
-- Demonstrates: source records absent from target.
-- Expected high-level result: missing record findings for omitted customer IDs.
+### Clean migration
+- Target: `sample_data/customers/target_customers_clean.csv`
+- Expected: no missing keys, no unexpected keys, no duplicate target keys.
 
-### Scenario: extra records
-- Target file: `sample_data/customers/target_customers_extra_records.csv`
-- Demonstrates: unexpected records that appear only in target.
-- Expected high-level result: unexpected record findings for extra customer IDs.
+### Missing records
+- Target: `sample_data/customers/target_customers_missing_records.csv`
+- Expected missing IDs: `CUST-1003`, `CUST-1009`.
 
-### Scenario: value mismatches
-- Target file: `sample_data/customers/target_customers_value_mismatches.csv`
-- Demonstrates: mismatched email, status, phone, created date, and balance.
-- Expected high-level result: mapped value mismatch findings for the changed fields.
+### Extra records
+- Target: `sample_data/customers/target_customers_extra_records.csv`
+- Expected unexpected IDs: `CUST-2013`, `CUST-2014`.
 
-### Scenario: duplicate keys
-- Target file: `sample_data/customers/target_customers_duplicate_keys.csv`
-- Demonstrates: duplicated `customer_id` in target.
-- Expected high-level result: duplicate key findings before field-level comparisons.
+### Duplicate keys
+- Target: `sample_data/customers/target_customers_duplicate_keys.csv`
+- Expected duplicated target ID: `CUST-1006`.
 
-## Orders
+### Orders (`order_id`)
 
-- Source file: `sample_data/orders/source_orders.csv`
-- Mapping file: `config/examples/orders_mapping.yaml`
+- Source: `sample_data/orders/source_orders.csv`
 
-### Scenario: clean migration
-- Target file: `sample_data/orders/target_orders_clean.csv`
-- Demonstrates: expected source-to-target compatibility after field mapping.
-- Expected high-level result: no key integrity issues, no missing/unexpected records, and no meaningful value mismatches.
+### Clean migration
+- Target: `sample_data/orders/target_orders_clean.csv`
+- Expected: no missing keys, no unexpected keys, no duplicate target keys.
 
-### Scenario: migration issues
-- Target file: `sample_data/orders/target_orders_migration_issues.csv`
-- Demonstrates:
-  - one missing order
-  - one unexpected target order
-  - one amount difference within 0.01 tolerance
-  - one true amount mismatch
-  - one status casing difference
-  - one date formatting difference
-- Expected high-level result: missing/unexpected record findings and one true amount mismatch; tolerance and normalization rules should reduce false positives.
+### Migration issues (record-level expectations)
+- Target: `sample_data/orders/target_orders_migration_issues.csv`
+- Expected missing ID: `ORD-9012`.
+- Expected unexpected ID: `ORD-9999`.
 
-## CRM migration (Salesforce -> Dynamics)
+## Future value-comparison fixture notes (not checked in Milestone 2)
 
-- Source file: `sample_data/crm_migration/source_contacts_salesforce.csv`
-- Mapping file: `config/examples/crm_contacts_mapping.yaml`
-- Reconciliation key: `source.salesforce_contact_id -> target.legacy_salesforce_id`
+- `target_customers_value_mismatches.csv` includes deliberate differences in email, status, phone, date, and balance fields.
+- `target_orders_migration_issues.csv` also includes amount tolerance examples, a true amount mismatch, status casing differences, and date-format examples.
+- CRM fixtures (`sample_data/crm_migration/*`) are future mapping-config scenarios because source and target key names differ.
 
-### Scenario: clean migration
-- Target file: `sample_data/crm_migration/target_contacts_dynamics_clean.csv`
-- Demonstrates: correct migration into Dynamics-style schema with renamed key and fields.
-- Expected high-level result: no missing/unexpected records, no key-level defects, and no mapped field mismatches.
+## CRM migration (future mapping-config scenario)
 
-### Scenario: migration issues
-- Target file: `sample_data/crm_migration/target_contacts_dynamics_issues.csv`
-- Demonstrates:
-  - missing migrated contact
-  - unexpected target contact
-  - email mismatch
-  - phone mismatch
-  - status/statecode mismatch
-  - date formatting difference
-  - owner mismatch
-- Expected high-level result: deterministic checks should flag key and true value issues while allowing date normalization when configured.
+CRM fixtures use different key names between source and target, so full reconciliation is deferred to Milestone 3 mapping-config implementation.
