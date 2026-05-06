@@ -32,7 +32,10 @@ def load_mapping_config(path: str) -> MappingConfig:
     if not mapping_path.exists():
         raise FileNotFoundError(f"Mapping file does not exist: {path}")
 
-    raw = yaml.safe_load(mapping_path.read_text(encoding="utf-8"))
+    try:
+        raw = yaml.safe_load(mapping_path.read_text(encoding="utf-8"))
+    except yaml.YAMLError as exc:
+        raise ValueError(f"Could not parse mapping YAML: {path}. {exc}") from exc
     if not isinstance(raw, dict):
         raise ValueError("Mapping YAML must parse to a dictionary/object.")
 

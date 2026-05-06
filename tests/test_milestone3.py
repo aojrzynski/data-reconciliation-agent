@@ -27,6 +27,13 @@ def test_mapping_config_invalid_raises(tmp_path: Path) -> None:
         load_mapping_config(str(bad))
 
 
+
+
+def test_mapping_config_invalid_yaml_syntax_raises(tmp_path: Path) -> None:
+    bad = tmp_path / "bad_syntax.yaml"
+    bad.write_text("entity: crm_contacts\nfield_mappings: [", encoding="utf-8")
+    with pytest.raises(ValueError, match="Could not parse mapping YAML"):
+        load_mapping_config(str(bad))
 def test_mapping_validation_missing_fields() -> None:
     crm = load_mapping_config(str(ROOT / "config/examples/crm_contacts_mapping.yaml"))
     errors = validate_mapping_config(crm, ["id"], ["id"])

@@ -130,6 +130,23 @@ def test_cli_invalid_mapping_exits_non_zero_without_traceback(tmp_path: Path) ->
     assert "Traceback" not in combined
 
 
+
+
+def test_cli_malformed_mapping_yaml_exits_non_zero_without_traceback(tmp_path: Path) -> None:
+    bad = tmp_path / "bad_mapping.yaml"
+    bad.write_text("entity: crm_contacts\nfield_mappings: [", encoding="utf-8")
+
+    result = _run_cli([
+        "--mode", "deterministic",
+        "--source", str(ROOT / "sample_data/crm_migration/source_contacts_salesforce.csv"),
+        "--target", str(ROOT / "sample_data/crm_migration/target_contacts_dynamics_clean.csv"),
+        "--mapping", str(bad),
+        "--output-dir", str(tmp_path / "out"),
+    ])
+    combined = result.stdout + result.stderr
+    assert result.returncode != 0
+    assert "Error:" in combined
+    assert "Traceback" not in combined
 def test_cli_agent_mode_exits_non_zero() -> None:
     result = _run_cli(["--mode", "agent"])
     assert result.returncode != 0

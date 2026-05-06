@@ -111,3 +111,8 @@ The repository includes realistic fixture families that support current and futu
 - Comparator execution is not implemented yet.
 - Agent mode is not implemented yet.
 - LLM summary polish is not implemented yet.
+
+
+## Learning angle
+
+This repository is intended to be useful as both a small reconciliation tool and a learning repo for bounded data-agent architecture. The deterministic engine does the evidence-producing work; later agent mode will coordinate deterministic tools rather than replace them.
