@@ -33,7 +33,10 @@ def _id_like(column: str) -> bool:
 
 def infer_key_candidates(source_df: pd.DataFrame, target_df: pd.DataFrame) -> list[KeyCandidate]:
     candidates: list[KeyCandidate] = []
-    for column in sorted(set(source_df.columns) & set(target_df.columns)):
+    common_target_columns = set(target_df.columns)
+    for column in source_df.columns:
+        if column not in common_target_columns:
+            continue
         source_values = _norm(source_df[column])
         target_values = _norm(target_df[column])
         source_non_null = source_values.dropna()
