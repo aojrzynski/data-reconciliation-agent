@@ -42,9 +42,9 @@ def load_dataset(path: str) -> LoadedDataset:
     file_type = detect_file_type(str(file_path))
 
     if file_type == "csv":
-        dataframe = pd.read_csv(file_path)
+        dataframe = pd.read_csv(file_path, dtype=str)
     elif file_type == "xlsx":
-        dataframe = pd.read_excel(file_path)
+        dataframe = pd.read_excel(file_path, dtype=str)
     else:
         raise ValueError(f"Unsupported file type: {file_type}")
 

@@ -78,6 +78,18 @@ def test_cli_same_name_key_without_mapping_shows_value_comparison_skipped(tmp_pa
     assert "Value comparison: skipped - no mapping config provided" in result.stdout
 
 
+def test_cli_duplicate_keys_mapping_shows_duplicate_skip_reason(tmp_path: Path) -> None:
+    result = _run_cli([
+        "--mode", "deterministic",
+        "--source", str(ROOT / "sample_data/customers/source_customers.csv"),
+        "--target", str(ROOT / "sample_data/customers/target_customers_duplicate_keys.csv"),
+        "--mapping", str(ROOT / "config/examples/customers_mapping.yaml"),
+        "--output-dir", str(tmp_path),
+    ])
+    assert result.returncode == 0
+    assert "Value comparison: skipped - duplicate keys present; row lookup is ambiguous" in result.stdout
+
+
 def test_cli_with_neither_key_nor_mapping_exits_non_zero(tmp_path: Path) -> None:
     result = _run_cli([
         "--mode", "deterministic",

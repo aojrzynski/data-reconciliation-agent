@@ -53,7 +53,7 @@ def write_report(output_dir: Path, report_data: dict) -> str:
         "## Value comparison summary",
         "Value comparison only runs for records matched by key. Missing and unexpected records are handled separately.",
         f"- Ran: {report_data['value_comparison']['enabled']}",
-        f"- Skipped reason: {report_data['value_comparison']['skipped_reason']}",
+        f"- Skipped reason: {report_data['value_comparison']['skipped_reason'] or '(none)'}",
         f"- Matched records compared: {report_data['value_comparison']['matched_records_compared']}",
         f"- Mapped fields compared: {report_data['value_comparison']['fields_compared']}",
         f"- Total field comparisons: {report_data['value_comparison']['total_field_comparisons']}",

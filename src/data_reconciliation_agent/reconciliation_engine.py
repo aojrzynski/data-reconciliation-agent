@@ -40,6 +40,7 @@ class ReconciliationResult:
     target_key: str
     value_comparison_enabled: bool
     value_mismatch_count: int
+    value_comparison_skipped_reason: str | None
 
 
 def run_deterministic_reconciliation(
@@ -284,4 +285,5 @@ def run_deterministic_reconciliation(
         target_key=target_key,
         value_comparison_enabled=value_comparison["enabled"],
         value_mismatch_count=value_comparison["mismatched_value_count"],
+        value_comparison_skipped_reason=value_comparison["skipped_reason"],
     )

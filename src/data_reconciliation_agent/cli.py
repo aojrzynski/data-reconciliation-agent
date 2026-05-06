@@ -31,7 +31,7 @@ def main() -> int:
         parser.error("deterministic mode requires either --key or --mapping")
 
     if args.llm_summary:
-        print("Warning: --llm-summary is ignored in Milestone 3. LLM polish is planned for a later milestone.")
+        print("Warning: --llm-summary is ignored in Milestone 4. LLM polish is planned for a later milestone.")
 
     from .reconciliation_engine import run_deterministic_reconciliation
 
@@ -65,7 +65,8 @@ def main() -> int:
     if result.value_comparison_enabled:
         print("Value comparison: ran")
     else:
-        print("Value comparison: skipped - no mapping config provided" if args.mapping is None else "Value comparison: skipped - blocking errors or mapping validation errors")
+        reason = result.value_comparison_skipped_reason or "unknown reason"
+        print(f"Value comparison: skipped - {reason}")
     print(f"Value mismatches: {result.value_mismatch_count}")
     print(f"Report path: {result.report_path}")
     print(f"Trace path: {result.trace_path}")
