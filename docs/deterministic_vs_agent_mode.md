@@ -37,6 +37,6 @@ If key inference is ambiguous, agent mode blocks safely and asks for `--key` or 
 
 ## Optional LLM polish layer
 
-Flow boundary: deterministic engine writes authoritative evidence first, agent mode orchestrates, and optional LLM polish produces a readability-only `llm_summary.md`.
+Flow boundary: deterministic engine writes authoritative evidence first, agent mode orchestrates, and optional LLM polish produces a readability-only `llm_summary.md` (deterministic fallback when no external provider is available).
 
 The LLM polish layer does not perform reconciliation and is never authoritative.

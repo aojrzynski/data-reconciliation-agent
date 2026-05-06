@@ -43,7 +43,9 @@ def test_fallback_generation_writes_summary_without_api_key(tmp_path: Path, monk
     trace_path = tmp_path / "reconciliation_trace.json"
     trace_path.write_text(json.dumps(_trace()), encoding="utf-8")
     result = generate_llm_summary(str(trace_path), str(tmp_path))
-    assert result.generated is False
+    assert result.summary_written is True
+    assert result.external_llm_used is False
+    assert result.provider == "deterministic_fallback"
     assert (tmp_path / "llm_summary.md").exists()
     text = (tmp_path / "llm_summary.md").read_text(encoding="utf-8")
     assert "Generated without an external LLM" in text

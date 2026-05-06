@@ -104,7 +104,7 @@ python -m data_reconciliation_agent.cli \
 - `docs/sample_scenarios.md`: expected scenario outcomes for learning and verification
 
 
-Optional LLM summary (`--llm-summary`) is non-authoritative, uses only deterministic trace metadata, does not inspect raw datasets or exception row contents, and never replaces deterministic outputs.
+Optional LLM summary (`--llm-summary`) is non-authoritative, uses only deterministic trace metadata, does not inspect raw datasets or exception row contents, and never replaces deterministic outputs. By default it writes a deterministic fallback summary; external provider polish is optional and provider-ready.
 
 Example with optional summary:
 ```bash

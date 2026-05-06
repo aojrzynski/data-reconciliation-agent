@@ -8,7 +8,7 @@
 
 Use these artifacts for final reconciliation conclusions.
 
-- `llm_summary.md` (optional): readability-only summary from deterministic metadata. It is not evidence and must be validated against `reconciliation_trace.json` and exception CSVs.
+- `llm_summary.md` (optional): readability-only summary from deterministic metadata, typically written as deterministic fallback when external LLM integration is unavailable. It is not evidence and must be validated against `reconciliation_trace.json` and exception CSVs.
 
 ## Agent artifacts (orchestration context)
 

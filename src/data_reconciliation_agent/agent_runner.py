@@ -32,7 +32,7 @@ def _confirm_assumptions(assumptions: list[str]) -> bool:
     return response in {"y", "yes"}
 
 
-def run_agent_reconciliation(source_path: str, target_path: str, output_dir: str, key: str | None = None, mapping_path: str | None = None, confirm_assumptions: bool = False, llm_summary_requested: bool = False) -> AgentRunResult:
+def run_agent_reconciliation(source_path: str, target_path: str, output_dir: str, key: str | None = None, mapping_path: str | None = None, confirm_assumptions: bool = False) -> AgentRunResult:
     out = Path(output_dir)
     out.mkdir(parents=True, exist_ok=True)
 

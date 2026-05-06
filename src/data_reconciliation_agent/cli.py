@@ -40,7 +40,6 @@ def main() -> int:
                 key=args.key,
                 mapping_path=args.mapping,
                 confirm_assumptions=args.confirm_assumptions,
-                llm_summary_requested=args.llm_summary,
             )
         except (FileNotFoundError, ValueError) as exc:
             print(f"Error: {exc}")
@@ -62,15 +61,18 @@ def main() -> int:
                 llm_result = generate_llm_summary(result.deterministic_result.trace_path, args.output_dir)
             else:
                 llm_result = LLMSummaryResult(
-                    enabled=True,
-                    generated=False,
-                    skipped_reason="deterministic reconciliation did not execute",
+                    requested=True,
+                    summary_written=False,
+                    external_llm_used=False,
                     provider=None,
                     output_path=None,
+                    skipped_reason="deterministic reconciliation did not execute",
                     warnings=[],
                 )
-            if llm_result.generated:
+            if llm_result.summary_written and llm_result.external_llm_used:
                 print(f"LLM summary: generated at {llm_result.output_path}")
+            elif llm_result.summary_written:
+                print(f"LLM summary: generated deterministic fallback at {llm_result.output_path}")
             else:
                 print(f"LLM summary: skipped - {llm_result.skipped_reason}")
         for warning in result.warnings:
@@ -87,10 +89,13 @@ def main() -> int:
             report_path.write_text(
                 existing
                 + "\n## Optional LLM summary\n"
-                + f"- Generated: {llm_result.generated}\n"
+                + f"- Requested: {llm_result.requested}\n"
+                + f"- Summary written: {llm_result.summary_written}\n"
+                + f"- External LLM used: {llm_result.external_llm_used}\n"
                 + f"- Provider: {llm_result.provider}\n"
                 + f"- Output path: {llm_result.output_path}\n"
                 + f"- Skipped reason: {llm_result.skipped_reason}\n"
+                + f"- Warnings: {', '.join(llm_result.warnings) if llm_result.warnings else '(none)'}\n"
                 + "- Non-authoritative: deterministic artifacts remain source of truth.\n",
                 encoding="utf-8",
             )
@@ -138,22 +143,27 @@ def main() -> int:
     print(f"Trace path: {result.trace_path}")
     if args.llm_summary:
         llm_result = generate_llm_summary(result.trace_path, args.output_dir)
-        if llm_result.generated:
+        if llm_result.summary_written and llm_result.external_llm_used:
             print(f"LLM summary: generated at {llm_result.output_path}")
+        elif llm_result.summary_written:
+            print(f"LLM summary: generated deterministic fallback at {llm_result.output_path}")
         else:
             print(f"LLM summary: skipped - {llm_result.skipped_reason}")
         trace_path = Path(result.trace_path)
         trace_data = json.loads(trace_path.read_text(encoding="utf-8"))
-        trace_data["llm_summary"] = llm_result.__dict__ | {"requested": True}
+        trace_data["llm_summary"] = llm_result.__dict__
         trace_path.write_text(json.dumps(trace_data, indent=2, sort_keys=True), encoding="utf-8")
         report_path = Path(result.report_path)
         report_path.write_text(
             report_path.read_text(encoding="utf-8")
             + "\n## Optional LLM summary\n"
-            + f"- Generated: {llm_result.generated}\n"
+            + f"- Requested: {llm_result.requested}\n"
+            + f"- Summary written: {llm_result.summary_written}\n"
+            + f"- External LLM used: {llm_result.external_llm_used}\n"
             + f"- Provider: {llm_result.provider}\n"
             + f"- Output path: {llm_result.output_path}\n"
             + f"- Skipped reason: {llm_result.skipped_reason}\n"
+            + f"- Warnings: {', '.join(llm_result.warnings) if llm_result.warnings else '(none)'}\n"
             + "- Non-authoritative: deterministic artifacts remain source of truth.\n",
             encoding="utf-8",
         )

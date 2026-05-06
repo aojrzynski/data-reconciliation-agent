@@ -250,7 +250,20 @@ def test_cli_deterministic_llm_summary_writes_file(tmp_path: Path) -> None:
     ])
     assert result.returncode == 0
     assert (tmp_path / "llm_summary.md").exists()
-    assert "LLM summary: skipped -" in result.stdout
+    assert "LLM summary: generated deterministic fallback at" in result.stdout
+
+
+def test_cli_agent_llm_summary_completed_writes_file(tmp_path: Path) -> None:
+    result = _run_cli([
+        "--mode", "agent",
+        "--source", str(ROOT / "sample_data/customers/source_customers.csv"),
+        "--target", str(ROOT / "sample_data/customers/target_customers_clean.csv"),
+        "--llm-summary",
+        "--output-dir", str(tmp_path),
+    ])
+    assert result.returncode == 0
+    assert (tmp_path / "llm_summary.md").exists()
+    assert "LLM summary: generated deterministic fallback at" in result.stdout
 
 
 def test_cli_agent_llm_summary_blocked_does_not_crash(tmp_path: Path) -> None:
