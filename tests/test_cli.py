@@ -8,6 +8,10 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def _run_cli(args: list[str]) -> subprocess.CompletedProcess[str]:
     env = os.environ.copy()
+    # CLI tests should be deterministic and should not depend on a developer's
+    # local OpenAI credentials.
+    env.pop("OPENAI_API_KEY", None)
+    env.pop("OPENAI_MODEL", None)
     env["PYTHONPATH"] = "src"
     return subprocess.run(
         [sys.executable, "-m", "data_reconciliation_agent.cli", *args],
