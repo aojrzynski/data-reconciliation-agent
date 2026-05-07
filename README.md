@@ -11,8 +11,6 @@ Migration work usually fails in boring ways:
 - values change during transforms,
 - and people sign off based on spreadsheet spot checks.
 
-"Trust me, the migration went fine" is not a reconciliation strategy.
-
 This project gives deterministic outputs you can rerun, inspect, and review.
 
 ## How it relates to the Data Quality Triage Agent
