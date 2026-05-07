@@ -3,7 +3,12 @@ import sys
 import types
 from pathlib import Path
 
-from data_reconciliation_agent.llm_summary import build_llm_summary_input, build_summary_prompt, generate_llm_summary
+from data_reconciliation_agent.llm_summary import (
+    build_llm_summary_input,
+    build_summary_prompt,
+    generate_llm_summary,
+    sanitize_llm_summary_text,
+)
 
 
 def _trace() -> dict:
@@ -38,6 +43,12 @@ def test_build_summary_prompt_includes_non_authoritative_instruction() -> None:
     prompt = build_summary_prompt(build_llm_summary_input(_trace()))
     assert "Deterministic outputs are authoritative" in prompt
     assert "Do not invent findings" in prompt
+    assert "Do not create markdown links" in prompt
+
+
+def test_sanitize_llm_summary_text_removes_markdown_links() -> None:
+    text = "Inspect [value_mismatches.csv](sample_data/customers/value_mismatches.csv) first."
+    assert sanitize_llm_summary_text(text) == "Inspect value_mismatches.csv first."
 
 
 def test_fallback_generation_writes_summary_without_api_key(tmp_path: Path, monkeypatch) -> None:
@@ -75,7 +86,7 @@ def test_mocked_openai_returns_text(tmp_path: Path, monkeypatch) -> None:
     class FakeResponses:
         def create(self, **kwargs):
             captured["kwargs"] = kwargs
-            return types.SimpleNamespace(output_text="## Executive summary\nMocked summary text")
+            return types.SimpleNamespace(output_text="## Executive summary\nSee [value_mismatches.csv](sample_data/customers/value_mismatches.csv)")
 
     class FakeOpenAI:
         def __init__(self):
@@ -91,7 +102,8 @@ def test_mocked_openai_returns_text(tmp_path: Path, monkeypatch) -> None:
     assert result.external_llm_used is True
     assert result.provider == "openai"
     text = (tmp_path / "llm_summary.md").read_text(encoding="utf-8")
-    assert "Mocked summary text" in text
+    assert "See value_mismatches.csv" in text
+    assert "[value_mismatches.csv](sample_data/customers/value_mismatches.csv)" not in text
     prompt = captured["kwargs"]["input"][0]["content"][0]["text"]
     assert "source_value" not in prompt
     assert "target_value" not in prompt

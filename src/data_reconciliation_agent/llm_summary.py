@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -54,10 +55,20 @@ def build_summary_prompt(summary_input: dict) -> str:
         "Deterministic outputs are authoritative; your summary is non-authoritative.\n"
         "Do not invent findings. Do not change counts. Use only the provided structured facts.\n"
         "Do not infer row-level details. Mention limitations and direct readers to evidence files.\n"
+        "Do not create markdown links. Do not invent file paths.\n"
+        "Only refer to evidence files by filename values provided in structured facts.\n"
+        "Do not list source/target datasets as evidence files unless they are explicitly present in evidence filenames.\n"
+        "Treat only deterministic artifacts as evidence files: reconciliation_trace.json, reconciliation_report.md, and exception CSV filenames listed under exceptions_written.\n"
+        "Do not add any evidence file that is not provided in structured facts.\n"
         "Produce concise markdown with: Executive summary, Key findings, Evidence files to inspect, Limitations.\n\n"
         "Structured facts:\n"
         f"{facts}\n"
     )
+
+
+def sanitize_llm_summary_text(text: str) -> str:
+    """Drop markdown links to avoid clickable invented paths in LLM text."""
+    return re.sub(r"\[([^\]]+)\]\(([^)]+)\)", r"\1", text)
 
 
 def _write_summary_markdown(output_dir: Path, summary_input: dict, generated_by_external_llm: bool, llm_text: str | None = None) -> str:
@@ -168,5 +179,6 @@ def generate_llm_summary(trace_path: str, output_dir: str, provider: str | None 
         output_path = _write_summary_markdown(out, summary_input, generated_by_external_llm=False)
         return LLMSummaryResult(True, True, False, "deterministic_fallback", output_path, None, warnings)
 
-    output_path = _write_summary_markdown(out, summary_input, generated_by_external_llm=True, llm_text=llm_text)
+    sanitized_llm_text = sanitize_llm_summary_text(llm_text)
+    output_path = _write_summary_markdown(out, summary_input, generated_by_external_llm=True, llm_text=sanitized_llm_text)
     return LLMSummaryResult(True, True, True, "openai", output_path, None, warnings)
