@@ -17,7 +17,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--mapping", help="Optional YAML mapping file path.")
     parser.add_argument("--mode", choices=["deterministic", "agent"], default="deterministic")
     parser.add_argument("--output-dir", default="outputs", help="Output directory for artifacts.")
-    parser.add_argument("--llm-summary", action="store_true", help="Optional future LLM summary flag.")
+    parser.add_argument("--llm-summary", action="store_true", help="Optional non-authoritative LLM polish summary.")
     parser.add_argument("--confirm-assumptions", action="store_true", help="Ask for y/yes before running inferred assumptions.")
     return parser
 

@@ -26,19 +26,24 @@
 - mapped field value comparison for matched keys
 - mismatch summaries and exception output
 
-## Milestone 5: Bounded agent mode orchestration (implemented / current)
+## Milestone 5: Bounded agent mode orchestration (implemented)
 - rule-based planner and explicit planned steps
 - bounded key inference for same-name keys
 - safe blocking on ambiguous assumptions
 - deterministic tool orchestration wrapper
 - `agent_trace.json` and `agent_report.md`
 
-## Milestone 6: Optional LLM polish (implemented / current)
+## Milestone 6: Optional LLM polish (implemented)
 - optional readability pass for reports
 - explicit non-authoritative annotation
 - deterministic outputs remain canonical
 
-## Milestone 7: Hardening and teaching polish (planned)
-- stronger edge-case coverage
-- deeper documentation walkthroughs
-- additional sample scenarios
+## Milestone 7: Final hardening and teaching polish (implemented / current)
+- portfolio-grade README rewrite
+- expanded architecture and operational docs
+- example command and extension guides
+- clarified authority boundaries across deterministic, agent, and optional LLM layers
+
+## Next steps
+
+See `FUTURE_WORK.md` for grounded follow-on improvements.

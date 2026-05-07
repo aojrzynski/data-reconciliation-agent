@@ -1,39 +1,99 @@
 # Interpreting Outputs
 
-## Deterministic artifacts (canonical)
+This guide explains how to read each artifact and how to keep authority boundaries clear.
 
-- `reconciliation_trace.json`: machine-readable deterministic run evidence.
-- `reconciliation_report.md`: human-readable deterministic summary.
-- Exception CSVs: concrete rows for missing/unexpected/duplicate/null key and value mismatches.
+## 1) Start with deterministic artifacts
 
-Use these artifacts for final reconciliation conclusions.
+Deterministic artifacts are canonical:
+- `reconciliation_trace.json`
+- `reconciliation_report.md`
+- exception CSV files
 
-- `llm_summary.md` (optional): readability-only summary from deterministic metadata. Provider metadata will show either `deterministic_fallback` (offline/default path) or `openai` (optional external polish path). It is not evidence and must be validated against `reconciliation_trace.json` and exception CSVs.
+Use these first for conclusions.
 
-## Agent artifacts (orchestration context)
+## 2) Reading `reconciliation_trace.json`
 
-### `agent_trace.json`
+Typical sections to review:
+- input context: source/target paths, mode, mapping/key settings
+- key integrity summaries: nulls, duplicates, key column status
+- record-level counts: missing in target, unexpected in target, matched keys
+- value comparison summary: mapped fields checked, mismatch counts
+- artifact paths and metadata
 
-Key sections:
-- top-level run context (`mode`, paths, inputs)
-- `plan` (status, key mode, assumptions, warnings, blocking errors, planned steps)
-- `key_candidates` (when inference was attempted)
-- `deterministic_run` summary (executed flag + deterministic artifact paths and counts)
-- top-level `warnings` and `blocking_errors`
-- `final_status`
+What it tells you:
+- exactly what checks ran,
+- exactly what counts were found,
+- where to find row-level evidence.
 
-### `agent_report.md`
+## 3) Reading `reconciliation_report.md`
 
-Human-readable explanation of:
-- final status and plan status
-- key/mapping decision
-- assumptions, warnings, blocking errors
-- planned steps
-- deterministic artifact paths and counts when executed
-- explicit authority boundary statement
+Use the report for a concise run narrative:
+- high-level pass/fail posture by check category,
+- key counts and mismatch summaries,
+- links/paths to generated artifacts.
 
-## Relationship between artifact types
+It is human-oriented but still deterministic in content.
 
-- Agent artifacts explain **how the run was orchestrated**.
-- Deterministic artifacts show **what the deterministic engine concluded**.
-- When they differ in tone/detail, deterministic artifacts remain authoritative.
+## 4) Exception CSV creation rules
+
+Exception files are created only for categories with rows.
+
+If you do not see a specific file, that usually means either:
+- no issues were found in that category, or
+- that check did not run (for example value comparisons without mapping).
+
+## 5) Reading `value_mismatches.csv`
+
+`value_mismatches.csv` is row-level field evidence for mapped comparisons.
+
+Read it as:
+- which matched record key had a mismatch,
+- which mapped field failed,
+- source value vs target value,
+- comparator context/reason when available.
+
+Interpretation reminder: this file is only populated from matched-key joins; unmatched rows are handled by missing/unexpected artifacts.
+
+## 6) Reading `agent_trace.json`
+
+`agent_trace.json` explains orchestration decisions, including:
+- chosen key/mapping strategy,
+- assumptions and warnings,
+- candidate keys considered during inference,
+- blocking reasons when execution is halted,
+- deterministic execution status and referenced artifact paths.
+
+Use it to audit *how the plan was made*, not to replace deterministic evidence.
+
+## 7) Reading `agent_report.md`
+
+`agent_report.md` is the human-readable version of agent orchestration state:
+- final status,
+- plan status,
+- assumptions/warnings/blockers,
+- deterministic run summary when executed.
+
+It should help teammates understand why agent mode proceeded or stopped.
+
+## 8) Interpreting `llm_summary.md` safely
+
+`llm_summary.md` is optional and non-authoritative.
+
+Safe usage:
+- treat it as a readability layer,
+- verify claims against deterministic artifacts,
+- never use it as sole sign-off evidence.
+
+Provider metadata indicates generation path:
+- `deterministic_fallback`: local deterministic summary path,
+- `openai`: optional external polish path.
+
+Either way, authoritative truth remains deterministic trace/report/exception CSVs.
+
+## 9) Fast triage order (recommended)
+
+1. Open `reconciliation_trace.json` for counts and execution details.
+2. Review exception CSVs for row-level evidence.
+3. Read `reconciliation_report.md` for concise narrative.
+4. If agent mode was used, read `agent_trace.json` and `agent_report.md` for orchestration context.
+5. If present, read `llm_summary.md` last as a communication aid.
