@@ -33,13 +33,23 @@ def _confirm_assumptions(assumptions: list[str]) -> bool:
 
 
 def run_agent_reconciliation(source_path: str, target_path: str, output_dir: str, key: str | None = None, mapping_path: str | None = None, confirm_assumptions: bool = False) -> AgentRunResult:
+    """Run bounded agent orchestration around the deterministic reconciliation engine.
+
+    This function owns orchestration decisions only: input inspection, key/mapping planning,
+    blocked/cancelled handling, and agent-level trace/report output. It does not decide
+    reconciliation correctness; deterministic artifacts remain authoritative evidence.
+    """
     out = Path(output_dir)
     out.mkdir(parents=True, exist_ok=True)
 
+    # load inputs
     source = load_dataset(source_path)
     target = load_dataset(target_path)
+
+    # infer key candidates
     key_candidates = [] if key or mapping_path else infer_key_candidates(source.dataframe, target.dataframe)
     try:
+        # build plan
         plan = build_agent_plan(
             source.path,
             target.path,
@@ -70,6 +80,7 @@ def run_agent_reconciliation(source_path: str, target_path: str, output_dir: str
     deterministic_result = None
     blocking_errors = list(plan.blocking_errors)
     warnings = list(plan.warnings)
+    # handle blocked/cancelled/runnable paths
     if plan.status == "blocked":
         status = "blocked"
     elif confirm_assumptions and plan.assumptions:
@@ -81,6 +92,7 @@ def run_agent_reconciliation(source_path: str, target_path: str, output_dir: str
     else:
         deterministic_result = run_reconciliation_tool(plan, output_dir)
 
+    # write agent trace
     trace_payload = {
         "timestamp_utc": datetime.now(timezone.utc).isoformat(),
         "mode": "agent",
@@ -116,6 +128,7 @@ def run_agent_reconciliation(source_path: str, target_path: str, output_dir: str
     agent_trace_path = str(out / "agent_trace.json")
     Path(agent_trace_path).write_text(json.dumps(trace_payload, indent=2), encoding="utf-8")
 
+    # write agent report
     report_lines = [
         "# Agent run summary",
         f"- Final status: {status}",
