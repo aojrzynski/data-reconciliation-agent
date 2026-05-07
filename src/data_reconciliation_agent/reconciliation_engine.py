@@ -50,6 +50,7 @@ def run_deterministic_reconciliation(
     key: str | None = None,
     mapping_path: str | None = None,
 ) -> ReconciliationResult:
+    # Canonical evidence is produced here: deterministic trace/report/exception CSV artifacts.
     out = Path(output_dir)
     out.mkdir(parents=True, exist_ok=True)
 
@@ -118,6 +119,8 @@ def run_deterministic_reconciliation(
         blocking_errors.extend(validation_errors)
         warnings.extend(validation_errors)
 
+    # Record-level checks (missing/unexpected keys) run before value comparison so the
+    # trace can establish key integrity first.
     if key_in_source and key_in_target and not validation_errors:
         missing_df = missing_keys(source.dataframe, target.dataframe, source_key, target_key)
         unexpected_df = unexpected_keys(source.dataframe, target.dataframe, source_key, target_key)
@@ -128,6 +131,7 @@ def run_deterministic_reconciliation(
         matched_key_count = len(source_keys & target_keys)
         if mapping_path and mapping_summary:
             has_duplicate_keys = len(duplicate_source) > 0 or len(duplicate_target) > 0
+            # Duplicate keys make row lookup ambiguous, so value comparison is unsafe.
             if has_duplicate_keys:
                 value_comparison["skipped_reason"] = "duplicate keys present; row lookup is ambiguous"
                 skipped_steps.append(
@@ -192,6 +196,7 @@ def run_deterministic_reconciliation(
                                 }
                             )
         else:
+            # Value comparison only runs when mapped source->target fields are explicitly defined.
             value_comparison["skipped_reason"] = "no mapping config provided"
     else:
         skipped_steps.append("Record-level key comparison skipped because key columns are invalid or failed mapping validation.")

@@ -7,6 +7,7 @@ from .reconciliation_engine import ReconciliationResult, run_deterministic_recon
 
 
 def run_reconciliation_tool(plan: AgentPlan, output_dir: str) -> ReconciliationResult:
+    # Thin boundary function: agent chooses plan, deterministic engine produces evidence.
     if plan.mapping_path:
         return run_deterministic_reconciliation(
             source_path=plan.source_path,

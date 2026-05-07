@@ -21,6 +21,7 @@ class LLMSummaryResult:
 
 
 def build_llm_summary_input(trace_data: dict) -> dict:
+    # Only deterministic trace metadata is used; no raw source/target rows are passed through.
     key_checks = trace_data.get("key_checks", {})
     record_comparison = trace_data.get("record_comparison", {})
     value_comparison = trace_data.get("value_comparison", {})
@@ -154,6 +155,7 @@ def generate_llm_summary(trace_path: str, output_dir: str, provider: str | None 
     warnings: list[str] = []
 
     if selected_provider is None:
+        # External provider is optional; fallback summary preserves deterministic readability output.
         warnings.append("External LLM not used because no provider/API key was configured.")
         output_path = _write_summary_markdown(out, summary_input, generated_by_external_llm=False)
         return LLMSummaryResult(True, True, False, "deterministic_fallback", output_path, None, warnings)
@@ -175,10 +177,12 @@ def generate_llm_summary(trace_path: str, output_dir: str, provider: str | None 
         output_path = _write_summary_markdown(out, summary_input, generated_by_external_llm=False)
         return LLMSummaryResult(True, True, False, "deterministic_fallback", output_path, None, warnings)
     except Exception as exc:  # noqa: BLE001
+        # Provider/runtime failures should never block deterministic reconciliation outputs.
         warnings.append(f"External LLM provider 'openai' failed: {exc}")
         output_path = _write_summary_markdown(out, summary_input, generated_by_external_llm=False)
         return LLMSummaryResult(True, True, False, "deterministic_fallback", output_path, None, warnings)
 
     sanitized_llm_text = sanitize_llm_summary_text(llm_text)
+    # LLM output is non-authoritative and is written as a readability layer only.
     output_path = _write_summary_markdown(out, summary_input, generated_by_external_llm=True, llm_text=sanitized_llm_text)
     return LLMSummaryResult(True, True, True, "openai", output_path, None, warnings)

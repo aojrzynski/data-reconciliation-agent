@@ -32,6 +32,8 @@ def _id_like(column: str) -> bool:
 
 
 def infer_key_candidates(source_df: pd.DataFrame, target_df: pd.DataFrame) -> list[KeyCandidate]:
+    # This module belongs to the agent orchestration layer. It proposes safe candidates
+    # but never overrides deterministic evidence with a guess.
     candidates: list[KeyCandidate] = []
     common_target_columns = set(target_df.columns)
     for column in source_df.columns:

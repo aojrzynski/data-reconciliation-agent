@@ -32,6 +32,7 @@ def compare_values(
     normalize: dict | None = None,
     tolerance: float | None = None,
 ) -> ComparisonOutcome:
+    # Comparator outcomes feed deterministic evidence files; keep logic explicit and predictable.
     if _is_nullish(source_value) and _is_nullish(target_value):
         return ComparisonOutcome(True, None, None, "both_null")
     if _is_nullish(source_value) != _is_nullish(target_value):

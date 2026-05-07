@@ -13,26 +13,33 @@ Migration work usually fails in boring ways:
 
 This project gives deterministic outputs you can rerun, inspect, and review.
 
-## How it relates to the Data Quality Triage Agent
-
-- Data Quality Triage Agent asks: what looks wrong inside one dataset?
-- Data Reconciliation Agent asks: did the target preserve what mattered from the source?
-
-They share the same design approach:
-- local-first
-- CLI-first
-- deterministic checks as source of truth
-- bounded agent orchestration
-- optional LLM polish only
-
 ## Why not just ask an LLM?
 
-An LLM can help summarize findings, but it should not decide reconciliation results.
+LLMs are useful for summarising findings, but reconciliation should not depend on model judgement.
 
-- Row counts, duplicate keys, missing records, unexpected records, and value mismatches are deterministic checks.
-- The optional LLM layer reads structured deterministic metadata, not raw dataset rows.
-- Raw datasets and exception row contents are not sent to the model.
-- Trace/report/exception artifacts remain the source of truth.
+For repetitive, rules-heavy checks, deterministic code is usually cheaper, faster, and more accurate than asking a model to reason over the task each run. A good use of AI here is helping build and explain a reliable deterministic tool, not redoing deterministic reconciliation decisions every time.
+
+This boundary matters when token cost, repeatability, auditability, and data handling are important.
+
+Authority boundary in this repo:
+- deterministic engine = evidence
+- agent mode = orchestration
+- LLM summary = readability only
+
+The optional LLM layer reads structured deterministic metadata, not raw dataset rows, and trace/report/exception artifacts remain the source of truth.
+
+## Why I built it this way
+
+I wanted to understand agents by building one from the inside out, starting with deterministic reconciliation that can stand on its own.
+
+I deliberately separated responsibilities:
+- deterministic reconciliation does the evidence-producing checks
+- agent mode handles orchestration and assumption management
+- optional LLM summary improves readability only
+
+This is a learning project written so other people can follow the architecture without hidden automation.
+
+The goal is not to make an LLM perform reconciliation. The goal is to show where an agent helps around reliable deterministic tools.
 
 ## What this project demonstrates
 
