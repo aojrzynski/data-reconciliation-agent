@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "data-reconciliation-agent"
-version = "0.1.0"
-description = "Local-first, CLI-first source-to-target data reconciliation foundation."
+version = "1.0.0"
+description = "Local-first CLI data reconciliation agent for source-to-target validation."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
