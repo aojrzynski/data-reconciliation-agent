@@ -39,7 +39,7 @@ python -m data_reconciliation_agent.cli \
 python -m data_reconciliation_agent.cli \
   --source sample_data/customers/source_customers.csv \
   --target sample_data/customers/target_customers_value_mismatches.csv \
-  --mapping config/examples/customers_value_mapping.yaml \
+  --mapping config/examples/customers_mapping.yaml \
   --mode deterministic \
   --output-dir outputs/customers_value_mismatch_run
 ```
@@ -125,13 +125,13 @@ python -m data_reconciliation_agent.cli \
 
 ## Confirm-assumptions example
 
-Use when agent mode reports blocked assumptions and you want explicit control:
+This asks for confirmation before continuing with inferred assumptions in agent mode.
 
 ```bash
 python -m data_reconciliation_agent.cli \
   --source sample_data/customers/source_customers.csv \
   --target sample_data/customers/target_customers_clean.csv \
-  --key customer_id \
-  --mode deterministic \
-  --output-dir outputs/customers_confirmed_key
+  --mode agent \
+  --confirm-assumptions \
+  --output-dir outputs/customers_agent_confirm_assumptions
 ```

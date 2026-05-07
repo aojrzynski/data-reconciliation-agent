@@ -24,7 +24,7 @@ Responsibilities:
 
 Primary modules:
 - `src/data_reconciliation_agent/cli.py`
-- `src/data_reconciliation_agent/io_utils.py`
+- `src/data_reconciliation_agent/intake.py`
 
 ### 2) Mapping and config layer
 
