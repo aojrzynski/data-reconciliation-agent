@@ -1,4 +1,9 @@
-"""Deterministic reconciliation engine for Milestone 4."""
+"""Canonical deterministic reconciliation engine.
+
+This layer produces authoritative evidence artifacts (trace/report/exception CSVs).
+Agent and LLM layers may orchestrate or summarize these outputs, but they do not
+change deterministic results.
+"""
 
 from __future__ import annotations
 
@@ -25,6 +30,7 @@ def _normalized_key_series(df: pd.DataFrame, key_column: str) -> pd.Series:
 
 @dataclass(frozen=True)
 class ReconciliationResult:
+    """Structured summary of deterministic execution and artifact locations."""
     source_row_count: int
     target_row_count: int
     matched_key_count: int
@@ -50,7 +56,12 @@ def run_deterministic_reconciliation(
     key: str | None = None,
     mapping_path: str | None = None,
 ) -> ReconciliationResult:
-    # Canonical evidence is produced here: deterministic trace/report/exception CSV artifacts.
+    """Run deterministic reconciliation and write authoritative evidence artifacts.
+
+    Record-level reconciliation runs first. Mapped value comparison only runs for
+    matched keys and is skipped when duplicate keys make row lookup ambiguous.
+    """
+    # Load inputs, resolve key mode, and optionally load mapping configuration.
     out = Path(output_dir)
     out.mkdir(parents=True, exist_ok=True)
 
@@ -82,6 +93,7 @@ def run_deterministic_reconciliation(
         target_key = key
         key_mode = "explicit_same_name_key"
 
+    # Run key health checks (exists/null/duplicate) before record comparison.
     key_in_source = key_exists(source.dataframe, source_key)
     key_in_target = key_exists(target.dataframe, target_key)
 
@@ -119,8 +131,7 @@ def run_deterministic_reconciliation(
         blocking_errors.extend(validation_errors)
         warnings.extend(validation_errors)
 
-    # Record-level checks (missing/unexpected keys) run before value comparison so the
-    # trace can establish key integrity first.
+    # Run missing/unexpected key checks before mapped value comparison.
     if key_in_source and key_in_target and not validation_errors:
         missing_df = missing_keys(source.dataframe, target.dataframe, source_key, target_key)
         unexpected_df = unexpected_keys(source.dataframe, target.dataframe, source_key, target_key)
@@ -131,13 +142,14 @@ def run_deterministic_reconciliation(
         matched_key_count = len(source_keys & target_keys)
         if mapping_path and mapping_summary:
             has_duplicate_keys = len(duplicate_source) > 0 or len(duplicate_target) > 0
-            # Duplicate keys make row lookup ambiguous, so value comparison is unsafe.
+            # Duplicate keys make matched-row lookup ambiguous, so skip mapped comparison.
             if has_duplicate_keys:
                 value_comparison["skipped_reason"] = "duplicate keys present; row lookup is ambiguous"
                 skipped_steps.append(
                     "Value comparison skipped because duplicate keys are present and matched row lookup is ambiguous."
                 )
             else:
+                # Run mapped value comparison only across matched records and mapped fields.
                 mapping_config = load_mapping_config(mapping_path)
                 value_comparison["enabled"] = True
                 value_comparison["fields_compared"] = len(mapping_config.field_mappings)
@@ -196,12 +208,13 @@ def run_deterministic_reconciliation(
                                 }
                             )
         else:
-            # Value comparison only runs when mapped source->target fields are explicitly defined.
+            # Without mapping config, deterministic run still performs record-level reconciliation.
             value_comparison["skipped_reason"] = "no mapping config provided"
     else:
         skipped_steps.append("Record-level key comparison skipped because key columns are invalid or failed mapping validation.")
         value_comparison["skipped_reason"] = "blocking errors or mapping validation errors"
 
+    # Write row-level exception CSV evidence; skip empty files intentionally.
     exceptions_written: list[str] = []
     exceptions_skipped_empty: list[str] = []
     for filename, frame in [
@@ -271,6 +284,7 @@ def run_deterministic_reconciliation(
         "blocking_errors": blocking_errors,
     }
 
+    # Write canonical machine-readable trace and human-readable report.
     trace_path = write_trace(out, trace_data)
     report_path = write_report(out, trace_data)
 

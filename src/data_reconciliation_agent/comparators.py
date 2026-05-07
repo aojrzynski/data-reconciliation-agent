@@ -1,4 +1,8 @@
-"""Deterministic field comparators for mapped value comparison."""
+"""Deterministic value comparators used by mapped field reconciliation.
+
+Each comparator returns normalized values plus a reason code so mismatch rows are
+explainable in exception CSVs.
+"""
 
 from __future__ import annotations
 
@@ -11,6 +15,7 @@ import pandas as pd
 
 @dataclass(frozen=True)
 class ComparisonOutcome:
+    """Comparison result with match flag, normalized values, and an explanation code."""
     matched: bool
     source_normalized: str | float | date | datetime | None
     target_normalized: str | float | date | datetime | None
@@ -32,6 +37,11 @@ def compare_values(
     normalize: dict | None = None,
     tolerance: float | None = None,
 ) -> ComparisonOutcome:
+    """Compare two values deterministically with a configured comparator.
+
+    Null-vs-null and null-vs-value are handled before type-specific comparison.
+    Parse failures become mismatches with reason codes instead of crashes.
+    """
     # Comparator outcomes feed deterministic evidence files; keep logic explicit and predictable.
     if _is_nullish(source_value) and _is_nullish(target_value):
         return ComparisonOutcome(True, None, None, "both_null")

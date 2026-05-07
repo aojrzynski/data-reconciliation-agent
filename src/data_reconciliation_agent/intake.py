@@ -1,4 +1,8 @@
-"""File intake helpers for deterministic reconciliation."""
+"""Local-first dataset loading for deterministic reconciliation.
+
+This module loads CSV/XLSX inputs as strings so identifiers like ``00123`` keep
+their original form. Numeric/date interpretation is deferred to comparators.
+"""
 
 from __future__ import annotations
 
@@ -38,6 +42,7 @@ def detect_file_type(path: str) -> str:
 
 
 def load_dataset(path: str) -> LoadedDataset:
+    """Load a supported local file into a dataframe with string-preserving types."""
     file_path = validate_path_exists(path)
     file_type = detect_file_type(str(file_path))
 

@@ -1,4 +1,9 @@
-"""Optional non-authoritative summary layer based on deterministic trace metadata."""
+"""Optional non-authoritative summary layer.
+
+This module can add readability polish from deterministic trace metadata. It never
+changes reconciliation evidence and falls back to deterministic summary text when
+provider access fails or is unavailable.
+"""
 
 from __future__ import annotations
 
@@ -11,6 +16,7 @@ from pathlib import Path
 
 @dataclass(frozen=True)
 class LLMSummaryResult:
+    """Outcome of optional LLM summary generation, including fallback details."""
     requested: bool
     summary_written: bool
     external_llm_used: bool
@@ -21,7 +27,10 @@ class LLMSummaryResult:
 
 
 def build_llm_summary_input(trace_data: dict) -> dict:
-    # Only deterministic trace metadata is used; no raw source/target rows are passed through.
+    """Build provider-safe summary input from deterministic trace metadata only.
+
+    Raw source/target rows and exception row contents are intentionally excluded.
+    """
     key_checks = trace_data.get("key_checks", {})
     record_comparison = trace_data.get("record_comparison", {})
     value_comparison = trace_data.get("value_comparison", {})
@@ -50,6 +59,7 @@ def build_llm_summary_input(trace_data: dict) -> dict:
 
 
 def build_summary_prompt(summary_input: dict) -> str:
+    """Build strict prompt text that keeps deterministic artifacts authoritative."""
     facts = json.dumps(summary_input, indent=2, sort_keys=True)
     return (
         "You are writing a readability-only executive summary for a deterministic reconciliation run.\n"
@@ -68,7 +78,7 @@ def build_summary_prompt(summary_input: dict) -> str:
 
 
 def sanitize_llm_summary_text(text: str) -> str:
-    """Drop markdown links to avoid clickable invented paths in LLM text."""
+    """Remove markdown links so generated text cannot invent clickable file paths."""
     return re.sub(r"\[([^\]]+)\]\(([^)]+)\)", r"\1", text)
 
 
@@ -145,6 +155,11 @@ def _generate_openai_summary(prompt: str) -> str:
 
 
 def generate_llm_summary(trace_path: str, output_dir: str, provider: str | None = None) -> LLMSummaryResult:
+    """Generate optional summary markdown, using OpenAI only when configured.
+
+    Provider failures never block deterministic outputs; fallback text is written
+    from trace metadata so users always get a summary artifact.
+    """
     out = Path(output_dir)
     out.mkdir(parents=True, exist_ok=True)
     trace_data = json.loads(Path(trace_path).read_text(encoding="utf-8"))

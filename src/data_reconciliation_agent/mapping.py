@@ -1,4 +1,9 @@
-"""Mapping configuration loading and validation for deterministic reconciliation."""
+"""Mapping configuration models and validation.
+
+Mapping is explicit user-provided structure describing how source and target
+relate. It defines key columns and mapped fields for value-comparison scope.
+Comparator settings are parsed here and executed later by comparator/engine code.
+"""
 
 from __future__ import annotations
 
@@ -12,6 +17,7 @@ ALLOWED_COMPARATORS = {"string", "number", "date", "datetime"}
 
 @dataclass(frozen=True)
 class FieldMapping:
+    """One source-to-target field comparison rule from mapping config."""
     source: str
     target: str
     comparator: str
@@ -21,6 +27,7 @@ class FieldMapping:
 
 @dataclass(frozen=True)
 class MappingConfig:
+    """Top-level mapping definition used by deterministic reconciliation."""
     entity: str
     source_key: str
     target_key: str
@@ -28,6 +35,7 @@ class MappingConfig:
 
 
 def load_mapping_config(path: str) -> MappingConfig:
+    """Load and validate mapping YAML into strongly-typed config objects."""
     mapping_path = Path(path)
     if not mapping_path.exists():
         raise FileNotFoundError(f"Mapping file does not exist: {path}")
@@ -92,6 +100,7 @@ def load_mapping_config(path: str) -> MappingConfig:
 
 
 def validate_mapping_config(config: MappingConfig, source_columns: list[str], target_columns: list[str]) -> list[str]:
+    """Return deterministic validation errors for mapping keys/fields vs schemas."""
     errors: list[str] = []
 
     if config.source_key not in source_columns:
@@ -118,6 +127,7 @@ def validate_mapping_config(config: MappingConfig, source_columns: list[str], ta
 
 
 def mapping_config_to_trace_dict(config: MappingConfig) -> dict:
+    """Build compact mapping metadata for deterministic trace/report artifacts."""
     comparators = sorted({field_mapping.comparator for field_mapping in config.field_mappings})
     return {
         "entity": config.entity,

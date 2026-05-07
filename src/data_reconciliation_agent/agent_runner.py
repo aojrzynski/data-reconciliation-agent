@@ -1,4 +1,10 @@
-"""Agent-mode orchestration for bounded deterministic execution."""
+"""Agent orchestration around deterministic reconciliation.
+
+This module coordinates agent-mode flow: load local inputs, build a bounded plan,
+optionally confirm assumptions, run deterministic tools, and write agent artifacts.
+It does not judge reconciliation correctness. Deterministic artifacts remain the
+authoritative evidence.
+"""
 
 from __future__ import annotations
 
@@ -15,6 +21,11 @@ from .tools import run_reconciliation_tool
 
 @dataclass(frozen=True)
 class AgentRunResult:
+    """Result envelope for an agent execution.
+
+    Status values (``completed``, ``blocked``, ``cancelled``) describe the agent run,
+    not whether source and target data reconciled successfully.
+    """
     status: str
     deterministic_result: object | None
     agent_report_path: str
@@ -35,21 +46,24 @@ def _confirm_assumptions(assumptions: list[str]) -> bool:
 def run_agent_reconciliation(source_path: str, target_path: str, output_dir: str, key: str | None = None, mapping_path: str | None = None, confirm_assumptions: bool = False) -> AgentRunResult:
     """Run bounded agent orchestration around the deterministic reconciliation engine.
 
-    This function owns orchestration decisions only: input inspection, key/mapping planning,
-    blocked/cancelled handling, and agent-level trace/report output. It does not decide
-    reconciliation correctness; deterministic artifacts remain authoritative evidence.
+    This orchestration layer prepares and executes a bounded plan. It loads inputs,
+    asks the planner to resolve key/mapping assumptions, handles blocked/cancelled
+    paths, and records agent trace/report files.
+
+    It does not decide reconciliation correctness. Deterministic trace/report/exception
+    outputs produced by the reconciliation engine remain authoritative.
     """
     out = Path(output_dir)
     out.mkdir(parents=True, exist_ok=True)
 
-    # load inputs
+    # Load datasets once so planning and deterministic execution use identical input shape.
     source = load_dataset(source_path)
     target = load_dataset(target_path)
 
-    # infer key candidates
+    # Only infer keys when user did not provide --key or --mapping; explicit input wins.
     key_candidates = [] if key or mapping_path else infer_key_candidates(source.dataframe, target.dataframe)
     try:
-        # build plan
+        # Build a runnable or blocked plan from explicit inputs plus candidate signals.
         plan = build_agent_plan(
             source.path,
             target.path,
@@ -80,7 +94,7 @@ def run_agent_reconciliation(source_path: str, target_path: str, output_dir: str
     deterministic_result = None
     blocking_errors = list(plan.blocking_errors)
     warnings = list(plan.warnings)
-    # handle blocked/cancelled/runnable paths
+    # Agent statuses describe orchestration flow; blocked/cancelled still produce artifacts.
     if plan.status == "blocked":
         status = "blocked"
     elif confirm_assumptions and plan.assumptions:
@@ -92,7 +106,7 @@ def run_agent_reconciliation(source_path: str, target_path: str, output_dir: str
     else:
         deterministic_result = run_reconciliation_tool(plan, output_dir)
 
-    # write agent trace
+    # Always write machine-readable agent trace so stop reasons are inspectable.
     trace_payload = {
         "timestamp_utc": datetime.now(timezone.utc).isoformat(),
         "mode": "agent",
@@ -128,7 +142,7 @@ def run_agent_reconciliation(source_path: str, target_path: str, output_dir: str
     agent_trace_path = str(out / "agent_trace.json")
     Path(agent_trace_path).write_text(json.dumps(trace_payload, indent=2), encoding="utf-8")
 
-    # write agent report
+    # Always write a human-readable agent report, even when deterministic execution did not run.
     report_lines = [
         "# Agent run summary",
         f"- Final status: {status}",
