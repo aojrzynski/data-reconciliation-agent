@@ -104,7 +104,18 @@ python -m data_reconciliation_agent.cli \
 - `docs/sample_scenarios.md`: expected scenario outcomes for learning and verification
 
 
-Optional LLM summary (`--llm-summary`) is non-authoritative, uses only deterministic trace metadata, does not inspect raw datasets or exception row contents, and never replaces deterministic outputs. By default it writes a deterministic fallback summary; external provider polish is optional and provider-ready.
+Optional LLM summary (`--llm-summary`) is non-authoritative, uses only deterministic trace metadata, does not inspect raw datasets or exception row contents, and never replaces deterministic outputs. By default it writes a deterministic fallback summary; external provider polish with OpenAI is optional.
+
+To enable optional OpenAI polish:
+
+```bash
+pip install -e ".[dev,llm]"
+export OPENAI_API_KEY="..."
+# optional model override
+export OPENAI_MODEL="gpt-4o-mini"
+```
+
+If `OPENAI_API_KEY` is not set, or OpenAI is unavailable, `--llm-summary` still works offline via deterministic fallback.
 
 Example with optional summary:
 ```bash

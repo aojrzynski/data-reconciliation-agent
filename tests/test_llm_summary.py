@@ -1,4 +1,6 @@
 import json
+import sys
+import types
 from pathlib import Path
 
 from data_reconciliation_agent.llm_summary import build_llm_summary_input, build_summary_prompt, generate_llm_summary
@@ -50,3 +52,46 @@ def test_fallback_generation_writes_summary_without_api_key(tmp_path: Path, monk
     text = (tmp_path / "llm_summary.md").read_text(encoding="utf-8")
     assert "Generated without an external LLM" in text
     assert "source_value" not in text
+
+
+def test_api_key_set_but_openai_missing_falls_back(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    monkeypatch.setitem(sys.modules, "openai", None)
+    trace_path = tmp_path / "reconciliation_trace.json"
+    trace_path.write_text(json.dumps(_trace()), encoding="utf-8")
+
+    result = generate_llm_summary(str(trace_path), str(tmp_path), provider="openai")
+
+    assert result.external_llm_used is False
+    assert result.provider == "deterministic_fallback"
+    assert any("not installed" in warning for warning in result.warnings)
+
+
+def test_mocked_openai_returns_text(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+
+    captured = {}
+
+    class FakeResponses:
+        def create(self, **kwargs):
+            captured["kwargs"] = kwargs
+            return types.SimpleNamespace(output_text="## Executive summary\nMocked summary text")
+
+    class FakeOpenAI:
+        def __init__(self):
+            self.responses = FakeResponses()
+
+    fake_module = types.SimpleNamespace(OpenAI=FakeOpenAI)
+    monkeypatch.setitem(sys.modules, "openai", fake_module)
+
+    trace_path = tmp_path / "reconciliation_trace.json"
+    trace_path.write_text(json.dumps(_trace()), encoding="utf-8")
+    result = generate_llm_summary(str(trace_path), str(tmp_path), provider="openai")
+
+    assert result.external_llm_used is True
+    assert result.provider == "openai"
+    text = (tmp_path / "llm_summary.md").read_text(encoding="utf-8")
+    assert "Mocked summary text" in text
+    prompt = captured["kwargs"]["input"][0]["content"][0]["text"]
+    assert "source_value" not in prompt
+    assert "target_value" not in prompt
