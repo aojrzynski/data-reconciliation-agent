@@ -19,7 +19,7 @@ Each `field_mappings[]` item:
   - `case_sensitive` (default `true`)
 - `tolerance` (optional, number only)
 
-## Runtime behavior (Milestone 4)
+## Runtime behavior
 
 - Mapping resolves source/target key names.
 - Mapping is validated against real columns.
