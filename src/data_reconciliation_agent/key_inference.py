@@ -1,4 +1,8 @@
-"""Deterministic key inference helpers for bounded agent mode."""
+"""Cautious key-candidate inference for agent planning.
+
+Inference proposes possible keys and scoring context. The planner decides whether
+any candidate is safe enough to run.
+"""
 
 from __future__ import annotations
 
@@ -9,6 +13,7 @@ import pandas as pd
 
 @dataclass(frozen=True)
 class KeyCandidate:
+    """Candidate same-name key pair plus confidence signals for planner decisions."""
     source_key: str
     target_key: str
     confidence: str
@@ -32,9 +37,14 @@ def _id_like(column: str) -> bool:
 
 
 def infer_key_candidates(source_df: pd.DataFrame, target_df: pd.DataFrame) -> list[KeyCandidate]:
-    # This module belongs to the agent orchestration layer. It proposes safe candidates
-    # but never overrides deterministic evidence with a guess.
+    """Infer same-name key candidates using conservative heuristic signals.
+
+    Signals such as overlap, uniqueness, non-null ratio, and identifier-like naming
+    guide scoring, but they are not proof. Low-confidence candidates are still kept
+    for trace/report explanations.
+    """
     candidates: list[KeyCandidate] = []
+    # v1 scope: only evaluate same-name columns that appear in both datasets.
     common_target_columns = set(target_df.columns)
     for column in source_df.columns:
         if column not in common_target_columns:
@@ -60,24 +70,28 @@ def infer_key_candidates(source_df: pd.DataFrame, target_df: pd.DataFrame) -> li
         reasons: list[str] = []
         warnings: list[str] = []
 
+        # Identifier-like naming is useful but never sufficient by itself.
         if _id_like(column):
             score += 0.35
             reasons.append("column name is identifier-like")
         else:
             score -= 0.20
             warnings.append("column name is not identifier-like")
+        # Null-heavy columns are weaker key candidates.
         if source_non_null_ratio > 0.95 and target_non_null_ratio > 0.95:
             score += 0.20
             reasons.append("high non-null ratio in source and target")
         else:
             score -= 0.15
             warnings.append("null-heavy column")
+        # Keys should usually be close to unique on both sides.
         if source_unique_ratio > 0.95 and target_unique_ratio > 0.95:
             score += 0.25
             reasons.append("high uniqueness ratio in source and target")
         else:
             score -= 0.25
             warnings.append("duplicate-heavy column")
+        # Overlap checks whether both datasets appear to reference similar entities.
         if overlap > 0.80:
             score += 0.25
             reasons.append("high normalized key overlap between source and target")

@@ -1,4 +1,4 @@
-"""Write human-readable deterministic reconciliation markdown report."""
+"""Write the human-readable deterministic reconciliation report artifact."""
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ from pathlib import Path
 
 
 def write_report(output_dir: Path, report_data: dict) -> str:
+    """Render deterministic run output as learner-friendly markdown evidence."""
     report_path = output_dir / "reconciliation_report.md"
     lines = [
         "# Reconciliation Report",
