@@ -2,6 +2,15 @@
 
 Data Reconciliation Agent is a local-first, CLI-first Python project for checking whether a target dataset preserved what mattered from a source dataset. It is built for migration, re-platforming, and source-to-target validation work where you need evidence, not guesswork.
 
+> [!NOTE]
+> **Part of the Data Agent Suite.**
+> 
+> This repo is one of 10 local-first data/AI agents built around practical data workflows, deterministic evidence, bounded LLM use, and review-ready artifacts.
+> 
+> The full ordered list of agents is included near the bottom of this README.
+> 
+> See the full suite overview: [Data Agent Suite](https://aojrzynski.github.io/agents/)
+
 ## Why this exists
 
 Migration work usually fails in boring ways:
@@ -202,3 +211,22 @@ python -m pytest
 - `docs/extension_paths.md`
 - `docs/adding_a_new_comparator.md`
 - `FUTURE_WORK.md`
+
+---
+
+> [!NOTE]
+> **Data Agent Suite**  
+> This repo is part of the **Data Agent Suite**: 10 local-first data/AI agents focused on practical data workflows, deterministic evidence, bounded LLM use, and review-ready artifacts.
+> 
+> See the full suite overview: [Data Agent Suite](https://aojrzynski.github.io/agents/)
+>
+> 1. [Data Quality Triage Agent](https://github.com/aojrzynski/data-quality-triage-agent)
+> 2. **Data Reconciliation Agent**
+> 3. [Data Dictionary Agent](https://github.com/aojrzynski/data-dictionary-agent)
+> 4. [Data Contract Review Agent](https://github.com/aojrzynski/data-contract-review-agent)
+> 5. [Sensitive Field Review Agent](https://github.com/aojrzynski/sensitive-field-review-agent)
+> 6. [Data Test Suggestion Agent](https://github.com/aojrzynski/data-test-suggestion-agent)
+> 7. [Dataset Onboarding Reviewer Workflow](https://github.com/aojrzynski/dataset-onboarding-reviewer-workflow)
+> 8. [Data Quality Investigation Workflow](https://github.com/aojrzynski/data-quality-investigation-workflow)
+> 9. [Project Evidence Review Agent](https://github.com/aojrzynski/project-evidence-review-agent)
+> 10. [Data Migration Readiness Review Agent](https://github.com/aojrzynski/data-migration-readiness-review-agent)
